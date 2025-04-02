@@ -1,0 +1,35 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: user-data-management-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/Instagram_User_Data_Management_Service
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: user-data-management-service
+
+
+
+topics:
+  authentication-service:
+    user-management-service:
+      consumer:
+        registration: registration
+        authentication: authentication
+      producer:
+            authentication: authentication-answer

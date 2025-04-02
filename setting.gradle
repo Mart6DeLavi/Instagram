@@ -1,1 +1,3 @@
 rootProject.name='Instagram'
+
+include("user-data-management-service")
