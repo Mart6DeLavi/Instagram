@@ -1,0 +1,40 @@
+server:
+  port: 8001
+
+spring:
+  application:
+    name: authentication-service
+
+  kafka:
+    consumer:
+      group-id: authentication-service
+    bootstrap-servers: localhost:9092
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASSWORD}
+      timeout: 60000
+      connect-timeout: 10s
+      ssl:
+        enabled: false
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 2
+          max-wait: -1ms
+
+topics:
+  user-data-management-service:
+    consumer: authentication-answer
+    producer:
+      registration: registration
+      authentication: authentication
+
+
+jwt:
+  user_secret: s2v6asadsas1fsde1CSsaf2rewfas902u0aJWsgGIQ7382bfjafqfhqhfo
+  user_secret_lifetime: 10m
