@@ -23,6 +23,10 @@ spring:
     consumer:
       group-id: user-data-management-service
 
+  devtools:
+    restart:
+      enabled: false
+
 
 
 topics:
