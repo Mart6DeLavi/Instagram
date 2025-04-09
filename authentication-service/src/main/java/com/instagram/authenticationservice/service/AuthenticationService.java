@@ -1,7 +1,7 @@
 package com.instagram.authenticationservice.service;
 
-import com.instagram.authenticationservice.dto.kafka.UserAuthenticationDto;
-import com.instagram.authenticationservice.dto.kafka.UserRegistrationDto;
+import com.instagram.dto.kafka.UserRegistrationDto;
+import com.instagram.dto.kafka.UserAuthenticationDto;
 import com.instagram.authenticationservice.kafka.KafkaConsumer;
 import com.instagram.authenticationservice.kafka.KafkaProducer;
 import com.instagram.authenticationservice.model.UserExists;

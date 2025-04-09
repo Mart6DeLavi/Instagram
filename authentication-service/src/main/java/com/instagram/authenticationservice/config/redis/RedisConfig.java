@@ -1,7 +1,6 @@
 package com.instagram.authenticationservice.config.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,6 +43,7 @@ public class RedisConfig<T> {
         redisTemplate.setHashValueSerializer(serializer);
 
         redisTemplate.afterPropertiesSet();
+
         return redisTemplate;
     }
 }

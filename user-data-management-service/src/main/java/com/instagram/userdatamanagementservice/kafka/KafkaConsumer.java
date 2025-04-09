@@ -1,7 +1,7 @@
 package com.instagram.userdatamanagementservice.kafka;
 
-import com.instagram.userdatamanagementservice.dto.kafka.UserAuthenticationDto;
-import com.instagram.userdatamanagementservice.dto.kafka.UserRegistrationDto;
+import com.instagram.dto.kafka.UserAuthenticationDto;
+import com.instagram.dto.kafka.UserRegistrationDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

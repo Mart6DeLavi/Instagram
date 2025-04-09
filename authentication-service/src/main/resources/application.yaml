@@ -27,6 +27,16 @@ spring:
           min-idle: 2
           max-wait: -1ms
 
+  datasource:
+    url: jdbc:postgresql://localhost:5432/Instagram_Authentication_Service_Redis_Backup
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+
 topics:
   user-data-management-service:
     consumer: authentication-answer

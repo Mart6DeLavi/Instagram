@@ -1,7 +1,7 @@
 package com.instagram.authenticationservice.kafka;
 
-import com.instagram.authenticationservice.dto.kafka.UserAuthenticationDto;
-import com.instagram.authenticationservice.dto.kafka.UserRegistrationDto;
+import com.instagram.dto.kafka.UserAuthenticationDto;
+import com.instagram.dto.kafka.UserRegistrationDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;

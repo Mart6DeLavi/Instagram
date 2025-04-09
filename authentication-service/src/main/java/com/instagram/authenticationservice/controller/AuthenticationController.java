@@ -1,7 +1,7 @@
 package com.instagram.authenticationservice.controller;
 
-import com.instagram.authenticationservice.dto.kafka.UserAuthenticationDto;
-import com.instagram.authenticationservice.dto.kafka.UserRegistrationDto;
+import com.instagram.dto.kafka.UserAuthenticationDto;
+import com.instagram.dto.kafka.UserRegistrationDto;
 import com.instagram.authenticationservice.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;

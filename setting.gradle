@@ -1,4 +1,0 @@
-rootProject.name = 'Instagram'
-
-include("user-data-management-service")
-include("authentication-service")

@@ -30,7 +30,7 @@ public class KafkaConsumerConfig {
         props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
 
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.instagram.userdatamanagementservice.dto.kafka.UserRegistrationDto");
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "com.instagram.dto.kafka.UserRegistrationDto");
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 
         return new DefaultKafkaConsumerFactory<>(props,

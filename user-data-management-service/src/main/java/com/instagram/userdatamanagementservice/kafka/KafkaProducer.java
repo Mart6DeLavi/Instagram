@@ -1,7 +1,7 @@
 package com.instagram.userdatamanagementservice.kafka;
 
 import com.instagram.userdatamanagementservice.config.SecurityConfig;
-import com.instagram.userdatamanagementservice.dto.kafka.UserAuthenticationDto;
+import com.instagram.dto.kafka.UserAuthenticationDto;
 import com.instagram.userdatamanagementservice.entity.User;
 import com.instagram.userdatamanagementservice.model.UserExists;
 import com.instagram.userdatamanagementservice.repository.UserRepository;

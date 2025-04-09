@@ -1,8 +1,8 @@
 package com.instagram.userdatamanagementservice.mapper;
 
 import com.instagram.userdatamanagementservice.config.SecurityConfig;
-import com.instagram.userdatamanagementservice.dto.kafka.UserRegistrationDto;
-import com.instagram.userdatamanagementservice.dto.UserResponseDto;
+import com.instagram.dto.kafka.UserRegistrationDto;
+import com.instagram.dto.UserResponseDto;
 import com.instagram.userdatamanagementservice.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

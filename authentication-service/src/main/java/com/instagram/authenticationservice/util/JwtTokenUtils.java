@@ -1,6 +1,6 @@
 package com.instagram.authenticationservice.util;
 
-import com.instagram.authenticationservice.dto.kafka.UserAuthenticationDto;
+import com.instagram.dto.kafka.UserAuthenticationDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

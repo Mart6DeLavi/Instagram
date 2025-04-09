@@ -1,6 +1,5 @@
 package com.instagram.authenticationservice.kafka;
 
-import com.instagram.authenticationservice.dto.kafka.UserAuthenticationDto;
 import com.instagram.authenticationservice.model.UserExists;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;

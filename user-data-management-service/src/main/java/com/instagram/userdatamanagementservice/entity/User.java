@@ -1,6 +1,6 @@
 package com.instagram.userdatamanagementservice.entity;
 
-import com.instagram.userdatamanagementservice.model.Sex;
+import com.instagram.model.Sex;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -35,14 +35,23 @@ public class User {
     @NotBlank(message = "Email cannot be empty")
     private String email;
     private String password;
+
+    @Builder.Default
     private Integer numberOfPosts = 0;
+
+    @Builder.Default
     private Integer numberOfSubscribers = 0;
+
+    @Builder.Default
     private Integer numberOfSubscriptions = 0;
     private String aboutMyself;
 
     @Enumerated(EnumType.STRING)
-
     private Sex sex;
+
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 }

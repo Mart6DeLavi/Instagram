@@ -1,0 +1,7 @@
+rootProject.name = 'Instagram'
+
+include("user-data-management-service")
+include("authentication-service")
+
+include ("miscellaneous-service")
+include ("miscellaneous-service:store")

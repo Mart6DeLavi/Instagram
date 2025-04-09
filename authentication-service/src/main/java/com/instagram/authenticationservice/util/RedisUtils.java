@@ -1,6 +1,6 @@
 package com.instagram.authenticationservice.util;
 
-import com.instagram.authenticationservice.dto.RedisTokenDto;
+import com.instagram.dto.redis.RedisTokenDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;

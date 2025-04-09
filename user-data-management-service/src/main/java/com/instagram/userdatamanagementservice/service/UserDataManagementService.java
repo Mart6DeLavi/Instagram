@@ -1,9 +1,9 @@
 package com.instagram.userdatamanagementservice.service;
 
 import com.instagram.userdatamanagementservice.config.SecurityConfig;
-import com.instagram.userdatamanagementservice.dto.UserResponseDto;
-import com.instagram.userdatamanagementservice.dto.kafka.UserAuthenticationDto;
-import com.instagram.userdatamanagementservice.dto.kafka.UserRegistrationDto;
+import com.instagram.dto.UserResponseDto;
+import com.instagram.dto.kafka.UserAuthenticationDto;
+import com.instagram.dto.kafka.UserRegistrationDto;
 import com.instagram.userdatamanagementservice.entity.User;
 import com.instagram.userdatamanagementservice.exception.UserAlreadyExistsException;
 import com.instagram.userdatamanagementservice.exception.UserNotFoundException;
