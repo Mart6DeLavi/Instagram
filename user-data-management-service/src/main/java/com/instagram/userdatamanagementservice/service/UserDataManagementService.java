@@ -15,6 +15,7 @@ import com.instagram.userdatamanagementservice.model.UserExists;
 import com.instagram.userdatamanagementservice.repository.UserRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -26,6 +27,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserDataManagementService {
@@ -46,8 +48,7 @@ public class UserDataManagementService {
         return mapper.mapToResponse(existedUser.orElse(null));
     }
 
-    public UserResponseDto createNewUser() {
-        UserRegistrationDto userRegistrationDto = kafkaConsumer.pollRegistrationDto();
+    public void createNewUser(UserRegistrationDto userRegistrationDto) {
         Optional<User> existedUser = userRepository.findUserByUsername(userRegistrationDto.username());
         if (existedUser.isPresent()) {
             new UserAlreadyExistsException(
@@ -55,13 +56,9 @@ public class UserDataManagementService {
         }
 
         try {
-            return Optional.of(userRegistrationDto)
-                    .map(mapper::mapToEntity)
-                    .map(userRepository::save)
-                    .map(mapper::mapToResponse)
-                    .orElseThrow(() -> new UserRegistrationFailedException(
-                            String.format("User %s could not be created", userRegistrationDto.username())
-                    ));
+                var newUser = kafkaConsumer.pollRegistrationDto();
+                userRepository.save(mapper.mapToEntity(newUser));
+                log.info("✅ User registered successfully");
         } catch (DataIntegrityViolationException ex) {
             throw new UserRegistrationFailedException(
                     String.format("User %s already exists", userRegistrationDto.username())

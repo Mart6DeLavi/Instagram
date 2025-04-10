@@ -4,6 +4,7 @@ import com.instagram.dto.kafka.UserAuthenticationDto;
 import com.instagram.dto.kafka.UserRegistrationDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +16,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 @RequiredArgsConstructor
 public class KafkaConsumer {
 
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     private final BlockingQueue<UserRegistrationDto> registrationQueue = new LinkedBlockingQueue<>();
     private final BlockingQueue<UserAuthenticationDto> authenticationQueue = new LinkedBlockingQueue<>();
 
@@ -22,6 +25,7 @@ public class KafkaConsumer {
     public void consumeNewUser(UserRegistrationDto userRegistrationDto) {
         log.info("Received new user {}", userRegistrationDto);
         registrationQueue.offer(userRegistrationDto);
+        applicationEventPublisher.publishEvent(new UserRegistrationEvent(userRegistrationDto));
     }
 
     @KafkaListener(topics = "${topics.authentication-service.user-management-service.consumer.authentication}", groupId = "authentication-service")
