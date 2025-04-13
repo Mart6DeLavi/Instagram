@@ -66,14 +66,16 @@ public class UserDataManagementService {
         }
     }
 
-    public UserExists authenticateUser() {
-        UserAuthenticationDto userAuthenticationDto = kafkaConsumer.pollAuthenticationDto();
+    public UserExists authenticateUser(@NonNull UserAuthenticationDto userAuthenticationDto) {
         Optional<User> existedUser = userRepository.findUserByUsername(userAuthenticationDto.username());
 
         if (existedUser.isPresent()) {
             try {
-                if (existedUser.get().getPassword().equals(securityConfig.passwordEncoder().encode(userAuthenticationDto.password()))) {
-                    kafkaTemplate.send(authenticationAnswerTopic, UserExists.FOUND);
+                String rawPassword = userAuthenticationDto.password();
+                String storedHashedPassword = existedUser.get().getPassword();
+
+                // Сравниваем сырой пароль с хешем из базы
+                if (securityConfig.passwordEncoder().matches(rawPassword, storedHashedPassword)) {
                     return UserExists.FOUND;
                 }
             } catch (Exception e) {
@@ -84,6 +86,7 @@ public class UserDataManagementService {
         }
         return UserExists.NOTFOUND;
     }
+
 
     public UpdatesStatus updateUserInformation(@NonNull UserRegistrationDto userRegistrationDto) {
         try {

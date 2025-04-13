@@ -19,7 +19,6 @@ public class KafkaConsumer {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     private final BlockingQueue<UserRegistrationDto> registrationQueue = new LinkedBlockingQueue<>();
-    private final BlockingQueue<UserAuthenticationDto> authenticationQueue = new LinkedBlockingQueue<>();
 
     @KafkaListener(topics = "${topics.authentication-service.user-management-service.consumer.registration}", groupId = "authentication-service")
     public void consumeNewUser(UserRegistrationDto userRegistrationDto) {
@@ -28,16 +27,8 @@ public class KafkaConsumer {
         applicationEventPublisher.publishEvent(new UserRegistrationEvent(userRegistrationDto));
     }
 
-    @KafkaListener(topics = "${topics.authentication-service.user-management-service.consumer.authentication}", groupId = "authentication-service")
-    public void consumeAuthentication(UserAuthenticationDto userAuthenticationDto) {
-        authenticationQueue.offer(userAuthenticationDto);
-    }
-
     public UserRegistrationDto pollRegistrationDto() {
         return registrationQueue.poll();
     }
 
-    public UserAuthenticationDto pollAuthenticationDto() {
-        return authenticationQueue.poll();
-    }
 }

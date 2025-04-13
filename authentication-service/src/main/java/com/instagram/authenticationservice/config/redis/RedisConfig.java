@@ -1,6 +1,7 @@
 package com.instagram.authenticationservice.config.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.instagram.dto.redis.RedisTokenDto;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +16,7 @@ import redis.clients.jedis.UnifiedJedis;
 
 @EnableCaching
 @Configuration
-public class RedisConfig<T> {
+public class RedisConfig {
 
     private static final String REDIS_HOST = System.getenv("REDIS_HOST");
     private static final int REDIS_PORT = Integer.parseInt(System.getenv("REDIS_PORT"));
@@ -32,8 +33,8 @@ public class RedisConfig<T> {
     );
 
     @Bean
-    public RedisTemplate<String, T> redisTemplate(RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
-        RedisTemplate<String, T> redisTemplate = new RedisTemplate<>();
+    public RedisTemplate<String, RedisTokenDto> redisTemplate(RedisConnectionFactory redisConnectionFactory, ObjectMapper objectMapper) {
+        RedisTemplate<String, RedisTokenDto> redisTemplate = new RedisTemplate<>();
         GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
         redisTemplate.setConnectionFactory(redisConnectionFactory);

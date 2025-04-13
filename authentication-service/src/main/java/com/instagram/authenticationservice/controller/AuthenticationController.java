@@ -5,6 +5,7 @@ import com.instagram.dto.kafka.UserRegistrationDto;
 import com.instagram.authenticationservice.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +31,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/authenticate")
-    public String authenticateUser(UserAuthenticationDto userAuthenticationDto) {
+    public ResponseEntity<String> authenticateUser(@RequestBody UserAuthenticationDto userAuthenticationDto) {
         try {
             return authenticationService.authenticateUser(userAuthenticationDto);
         } catch (Exception ex) {
