@@ -12,8 +12,8 @@ import java.time.Duration;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RedisUtils<T> {
-    private final RedisTemplate<String, T> redisTemplate;
+public class RedisUtils {
+    private final RedisTemplate<String, RedisTokenDto> redisTemplate;
 
     private static final Duration TOKEN_TTL = Duration.ofMinutes(30);
 
@@ -22,7 +22,7 @@ public class RedisUtils<T> {
         RedisTokenDto redisTokenDto = new RedisTokenDto(token, username);
 
         try {
-            redisTemplate.opsForValue().set(RedisKey, (T) redisTokenDto, TOKEN_TTL);
+            redisTemplate.opsForValue().set(RedisKey, redisTokenDto, TOKEN_TTL);
             log.info("✅ Token stored in Redis for user: {} with TTL: {}", username, TOKEN_TTL);
         } catch (DataAccessException ex) {
             log.error("❌ Unable to store token in Redis for user: {}", username, ex);

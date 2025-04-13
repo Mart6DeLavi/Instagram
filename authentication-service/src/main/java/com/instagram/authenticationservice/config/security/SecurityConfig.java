@@ -16,12 +16,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final RateLimitingFilter rateLimitingFilter;
-    private final RequestFilter requestFilter;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -31,8 +31,7 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
                 .httpBasic(Customizer.withDefaults())
-                .addFilterBefore(requestFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(rateLimitingFilter, RequestFilter.class);
+                .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }
