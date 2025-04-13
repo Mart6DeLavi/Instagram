@@ -5,3 +5,5 @@ include("authentication-service")
 
 include ("miscellaneous-service")
 include ("miscellaneous-service:store")
+
+include ("discovery-service")
