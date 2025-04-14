@@ -3,13 +3,11 @@ package com.instagram.authenticationservice.controller;
 import com.instagram.dto.kafka.UserAuthenticationDto;
 import com.instagram.dto.kafka.UserRegistrationDto;
 import com.instagram.authenticationservice.service.AuthenticationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -20,7 +18,7 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/register")
-    public String registerNewUser(@RequestBody UserRegistrationDto userRegistrationDto) {
+    public String registerNewUser(@Valid @RequestBody UserRegistrationDto userRegistrationDto) {
         try {
             authenticationService.registerNewUser(userRegistrationDto);
             log.info("Registered new user: {}", userRegistrationDto);
@@ -31,11 +29,16 @@ public class AuthenticationController {
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<String> authenticateUser(@RequestBody UserAuthenticationDto userAuthenticationDto) {
+    public ResponseEntity<String> authenticateUser(@Valid @RequestBody UserAuthenticationDto userAuthenticationDto) {
         try {
             return authenticationService.authenticateUser(userAuthenticationDto);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    @GetMapping("/findToken/{username}")
+    public String findTokenByUsername(@PathVariable String username) {
+        return authenticationService.findTokenByUsername(username);
     }
 }
