@@ -34,7 +34,7 @@ public class RedisUtils {
     }
 
     public String findTokenByUsername(String username) {
-        String redisKey = "user: " + username; // Обратите внимание: убрал пробел после "user:"
+        String redisKey = "user: " + username;
         Object value = redisTemplate.opsForValue().get(redisKey);
 
         RedisTokenDto redisTokenDto;
