@@ -35,10 +35,6 @@ public class UserDataManagementService {
     private final KafkaConsumer kafkaConsumer;
     private final EntityMapper mapper;
     private final SecurityConfig securityConfig;
-    private final KafkaTemplate<String, UserExists> kafkaTemplate;
-
-    @Value("${topics.authentication-service.user-management-service.producer.authentication}")
-    private static String authenticationAnswerTopic;
 
     public UserResponseDto findUserByUsername(@NonNull String username) {
         Optional<User> existedUser = Optional.of(userRepository.findUserByUsername(username)
@@ -74,7 +70,6 @@ public class UserDataManagementService {
                 String rawPassword = userAuthenticationDto.password();
                 String storedHashedPassword = existedUser.get().getPassword();
 
-                // Сравниваем сырой пароль с хешем из базы
                 if (securityConfig.passwordEncoder().matches(rawPassword, storedHashedPassword)) {
                     return UserExists.FOUND;
                 }

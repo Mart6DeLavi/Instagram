@@ -36,16 +36,6 @@ public class User {
     private String email;
     private String password;
 
-    @Builder.Default
-    private Integer numberOfPosts = 0;
-
-    @Builder.Default
-    private Integer numberOfSubscribers = 0;
-
-    @Builder.Default
-    private Integer numberOfSubscriptions = 0;
-    private String aboutMyself;
-
     @Enumerated(EnumType.STRING)
     private Sex sex;
 
