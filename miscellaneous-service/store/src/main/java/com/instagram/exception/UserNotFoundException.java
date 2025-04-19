@@ -1,4 +1,4 @@
-package com.instagram.userdatamanagementservice.exception;
+package com.instagram.exception;
 
 public class UserNotFoundException extends RuntimeException {
     public UserNotFoundException(String message) {

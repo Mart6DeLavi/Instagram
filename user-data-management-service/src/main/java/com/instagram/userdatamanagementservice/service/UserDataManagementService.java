@@ -1,12 +1,12 @@
 package com.instagram.userdatamanagementservice.service;
 
-import com.instagram.userdatamanagementservice.config.SecurityConfig;
 import com.instagram.dto.UserResponseDto;
 import com.instagram.dto.kafka.UserAuthenticationDto;
 import com.instagram.dto.kafka.UserRegistrationDto;
+import com.instagram.userdatamanagementservice.config.SecurityConfig;
 import com.instagram.userdatamanagementservice.entity.User;
 import com.instagram.userdatamanagementservice.exception.UserAlreadyExistsException;
-import com.instagram.userdatamanagementservice.exception.UserNotFoundException;
+import com.instagram.exception.UserNotFoundException;
 import com.instagram.userdatamanagementservice.exception.UserRegistrationFailedException;
 import com.instagram.userdatamanagementservice.kafka.KafkaConsumer;
 import com.instagram.userdatamanagementservice.mapper.EntityMapper;
@@ -16,9 +16,7 @@ import com.instagram.userdatamanagementservice.repository.UserRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -44,10 +42,17 @@ public class UserDataManagementService {
         return mapper.mapToResponse(existedUser.orElse(null));
     }
 
+    public Long getUserIdByUsername(@NonNull String username) {
+        return Optional.of(userRepository.getUserIdByUsername(username))
+                .orElseThrow(() -> new UserNotFoundException(
+                        String.format("No such user with username: %s", username
+                        )));
+    }
+
     public void createNewUser(UserRegistrationDto userRegistrationDto) {
         Optional<User> existedUser = userRepository.findUserByUsername(userRegistrationDto.username());
         if (existedUser.isPresent()) {
-            new UserAlreadyExistsException(
+            throw new UserAlreadyExistsException(
                     String.format("User %s already exist", userRegistrationDto.username()));
         }
 

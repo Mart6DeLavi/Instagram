@@ -2,7 +2,7 @@ package com.instagram.authenticationservice.service;
 
 import com.instagram.authenticationservice.config.client.UserDataManagementClient;
 import com.instagram.authenticationservice.entity.JwtTokenRedisBackup;
-import com.instagram.authenticationservice.exception.TokenNotFoundException;
+import com.instagram.exception.TokenNotFoundException;
 import com.instagram.authenticationservice.kafka.KafkaProducer;
 import com.instagram.authenticationservice.mapper.EntityMapper;
 import com.instagram.authenticationservice.model.UserExists;

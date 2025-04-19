@@ -5,5 +5,9 @@ include("authentication-service")
 
 include ("miscellaneous-service")
 include ("miscellaneous-service:store")
+include ("miscellaneous-service:exception-handler")
 
 include ("discovery-server")
+include ("profile-service")
+
+

@@ -18,4 +18,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
         u.username = :username
     """)
     Optional<User> findUserByUsername(@Param("username") String username);
+
+    @Query("""
+        SELECT u.id 
+        FROM User u 
+        WHERE 
+        u.username = :username
+    """)
+    Long getUserIdByUsername(String username);
 }

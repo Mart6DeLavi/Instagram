@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changeset/init_V001.sql
+  - include:
+      file: db/changelog/changeset/table_user_profile_column_changes_V002.sql

@@ -4,10 +4,7 @@ import com.instagram.dto.kafka.UserAuthenticationDto;
 import com.instagram.userdatamanagementservice.model.UserExists;
 import com.instagram.userdatamanagementservice.service.UserDataManagementService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,5 +15,10 @@ public class UserDataManagementController {
     @PostMapping("/authenticate")
     public UserExists authenticateUser(@RequestBody UserAuthenticationDto userAuthenticationDto) {
         return userDataManagementService.authenticateUser(userAuthenticationDto);
+    }
+
+    @GetMapping("/getUserId/{username}")
+    public Long getUserIdByUsername(@PathVariable String username) {
+        return userDataManagementService.getUserIdByUsername(username);
     }
 }

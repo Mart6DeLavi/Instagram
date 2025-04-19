@@ -1,7 +1,7 @@
 package com.instagram.authenticationservice.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.instagram.authenticationservice.exception.TokenNotFoundException;
+import com.instagram.exception.TokenNotFoundException;
 import com.instagram.dto.redis.RedisTokenDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

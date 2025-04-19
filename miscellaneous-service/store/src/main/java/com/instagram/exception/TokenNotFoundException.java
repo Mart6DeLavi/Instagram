@@ -1,4 +1,4 @@
-package com.instagram.authenticationservice.exception;
+package com.instagram.exception;
 
 public class TokenNotFoundException extends RuntimeException {
     public TokenNotFoundException(String message) {
