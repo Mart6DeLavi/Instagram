@@ -13,7 +13,9 @@ import java.sql.Timestamp;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "user_profile")
+@Table(name = "user_profile",
+        uniqueConstraints = @UniqueConstraint(name = "unique_username", columnNames = {"username"})
+)
 public class UserProfile{
 
     @Id
