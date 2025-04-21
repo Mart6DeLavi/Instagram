@@ -8,6 +8,7 @@ import com.instagram.postservice.document.Location;
 import com.instagram.postservice.document.Media;
 import com.instagram.postservice.document.Post;
 import com.instagram.postservice.dto.PostInformationDto;
+import com.instagram.postservice.kafka.KafkaProducer;
 import com.instagram.postservice.mapper.EntityMapper;
 import com.instagram.postservice.repository.PostRepository;
 import lombok.NonNull;
@@ -30,6 +31,7 @@ public class PostService {
     private final AuthenticationServiceClient authenticationServiceClient;
     private final UserDataManagementClient userDataManagementClient;
     private final S3Service s3Service;
+    private final KafkaProducer kafkaProducer;
 
     private static final Map<String, Long> userCache = new ConcurrentHashMap<>();
 
@@ -78,6 +80,10 @@ public class PostService {
                 .likesCount(0)
                 .commentsCount(0)
                 .build();
+
+        kafkaProducer.sendPostCreatedEvent(userId);
+
+        log.info("message sent to kafka");
 
         return EntityMapper.toPostInformationDto(postRepository.save(post));
     }
