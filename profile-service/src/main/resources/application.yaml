@@ -33,6 +33,11 @@ spring:
       org.springframework.http.converter: DEBUG
       org.springframework.beans.factory: DEBUG
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: profile-service
+
 eureka:
   client:
     service-url:

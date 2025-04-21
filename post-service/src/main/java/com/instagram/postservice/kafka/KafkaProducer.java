@@ -1,6 +1,6 @@
 package com.instagram.postservice.kafka;
 
-import com.instagram.postservice.dto.kafka.PostCreatedEventDto;
+import com.instagram.dto.kafka.PostCreatedEventDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
