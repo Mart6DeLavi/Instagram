@@ -9,4 +9,4 @@ include ("miscellaneous-service:exception-handler")
 
 include ("discovery-server")
 include ("profile-service")
-include ("media-service")
+include ("post-service")
