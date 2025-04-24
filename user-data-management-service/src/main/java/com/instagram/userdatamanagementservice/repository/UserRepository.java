@@ -26,4 +26,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
         u.username = :username
     """)
     Long getUserIdByUsername(String username);
+
+    @Query("""
+        SELECT u.username 
+        FROM User u 
+        WHERE 
+        u.id = :userId
+    """)
+    String getUsernameByUserId(@Param("userId") Long userId);
 }

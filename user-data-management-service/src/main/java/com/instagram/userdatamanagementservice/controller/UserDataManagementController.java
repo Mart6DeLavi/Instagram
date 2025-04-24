@@ -21,4 +21,9 @@ public class UserDataManagementController {
     public Long getUserIdByUsername(@PathVariable String username) {
         return userDataManagementService.getUserIdByUsername(username);
     }
+
+    @GetMapping("/getUsername/{userId}")
+    public String getUsernameByUserId(@PathVariable Long userId) {
+        return userDataManagementService.getUsernameByUserId(userId);
+    }
 }

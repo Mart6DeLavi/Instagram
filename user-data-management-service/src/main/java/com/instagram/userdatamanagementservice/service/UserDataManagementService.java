@@ -20,6 +20,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -40,6 +41,13 @@ public class UserDataManagementService {
                         String.format("No such user with username: %s", username)
                 )));
         return mapper.mapToResponse(existedUser.orElse(null));
+    }
+
+    public String getUsernameByUserId(@NonNull Long userId) {
+        return Optional.of(userRepository.getUsernameByUserId(userId))
+                .orElseThrow(() -> new UserNotFoundException(
+                        String.format("No such user with id: %d", userId
+                        )));
     }
 
     public Long getUserIdByUsername(@NonNull String username) {
