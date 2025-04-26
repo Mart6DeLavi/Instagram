@@ -23,6 +23,11 @@ public class PostController {
         return ResponseEntity.ok(postService.getAllPostsByUsername(username));
     }
 
+    @GetMapping("/{postId}")
+    public boolean isPostExist(@PathVariable String postId) {
+        return postService.isPostExist(postId);
+    }
+
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostInformationDto> createPost(
             @RequestParam("username") String username,

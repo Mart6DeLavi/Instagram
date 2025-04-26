@@ -18,6 +18,11 @@ public class CommentController {
 
     private final CommentService commentService;
 
+    @GetMapping("/{commentId}")
+    public boolean isCommentExist(@PathVariable String commentId) {
+        return commentService.isCommentExist(commentId);
+    }
+
     @GetMapping("/all/{postId}")
     public ResponseEntity<List<CommentInformationDto>> getAllCommentsByPostId(
             @RequestHeader String username,

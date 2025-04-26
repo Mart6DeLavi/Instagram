@@ -14,6 +14,7 @@ import com.instagram.postservice.repository.PostRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -44,6 +45,14 @@ public class PostService {
         return posts.stream()
                 .map(EntityMapper::toPostInformationDto)
                 .toList();
+    }
+
+    public boolean isPostExist(@NonNull String postId) {
+        ObjectId postObjectId = new ObjectId(postId);
+
+        var post = postRepository.getPostByPostId(postObjectId);
+
+        return post.isPresent();
     }
 
     public PostInformationDto createNewPost(String username,

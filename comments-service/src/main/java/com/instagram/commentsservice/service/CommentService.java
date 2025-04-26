@@ -14,6 +14,7 @@ import com.instagram.exception.UserNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -29,6 +30,15 @@ public class CommentService {
 
     private static final Map<String, Long> userCache = new ConcurrentHashMap<>();
     private final KafkaProducer kafkaProducer;
+
+
+    public boolean isCommentExist(String commentId) {
+        ObjectId commentObjectId = new ObjectId(commentId);
+
+        var comment = commentRepository.getCommentByCommentId(commentObjectId);
+
+        return comment.isPresent();
+    }
 
     public List<CommentInformationDto> getAllCommentsByPostId(String username, String postId) {
         validateTokenExists(username);
