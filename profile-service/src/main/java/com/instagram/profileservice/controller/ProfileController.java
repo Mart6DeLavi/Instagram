@@ -1,6 +1,7 @@
 package com.instagram.profileservice.controller;
 
 import com.instagram.dto.AllProfileInformationDto;
+import com.instagram.dto.feign.ProfileInformationOfSubscriptionsDto;
 import com.instagram.profileservice.dto.UserProfileUpdateInformationDto;
 import com.instagram.profileservice.entity.UserProfile;
 import com.instagram.profileservice.mapper.EntityMapper;
@@ -41,6 +42,19 @@ public class ProfileController {
     public AllProfileInformationDto getProfile(@PathVariable String username) {
         return profileService.getAllProfileInformation(username);
     }
+
+    @GetMapping("/{username}/followers")
+    public ResponseEntity<List<ProfileInformationOfSubscriptionsDto>> getFollowersInfo(@PathVariable String username) {
+        List<ProfileInformationOfSubscriptionsDto> followers = profileService.getFollowersInfo(username);
+        return ResponseEntity.ok(followers);
+    }
+
+    @GetMapping("/{username}/following")
+    public ResponseEntity<List<ProfileInformationOfSubscriptionsDto>> getFollowingInfo(@PathVariable String username) {
+        List<ProfileInformationOfSubscriptionsDto> following = profileService.getFollowingInfo(username);
+        return ResponseEntity.ok(following);
+    }
+
 
     @PatchMapping("/update/{username}")
     public UserProfile updateProfileInformation(

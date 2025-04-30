@@ -4,6 +4,7 @@ import com.instagram.dto.feign.ProfileInformationOfSubscriptionsDto;
 import com.instagram.exception.TokenNotFoundException;
 import com.instagram.exception.UserNotFoundException;
 import com.instagram.profileservice.client.AuthenticationServiceClient;
+import com.instagram.profileservice.client.FollowServiceClient;
 import com.instagram.profileservice.client.UserDataManagementClient;
 import com.instagram.dto.AllProfileInformationDto;
 import com.instagram.profileservice.dto.UserProfileUpdateInformationDto;
@@ -20,6 +21,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,6 +38,7 @@ public class ProfileService {
     private final UserProfileRepository userProfileRepository;
     private final UserDataManagementClient userDataManagementClient;
     private final AuthenticationServiceClient authenticationServiceClient;
+    private final FollowServiceClient followServiceClient;
     private final S3Service s3Service;
 
     private static final Map<String, Long> userCache = new ConcurrentHashMap<>();
@@ -65,6 +68,27 @@ public class ProfileService {
                 ))
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public List<ProfileInformationOfSubscriptionsDto> getFollowersInfo(@NonNull String username) {
+        Long userId = getUserIdByUsername(username);
+        List<Long> followerIds = followServiceClient.getFollowers(userId).getBody();
+        if (followerIds == null || followerIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return getAllProfileInformationOfSubscriptions(followerIds);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProfileInformationOfSubscriptionsDto> getFollowingInfo(@NonNull String username) {
+        Long userId = getUserIdByUsername(username);
+        List<Long> followingIds = followServiceClient.getFollowing(userId).getBody();
+        if (followingIds == null || followingIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return getAllProfileInformationOfSubscriptions(followingIds);
+    }
+
 
     @Transactional
     public UserProfile updateProfileInformation(@NonNull String username, @Valid UserProfileUpdateInformationDto dto) {
