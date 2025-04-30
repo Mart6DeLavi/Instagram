@@ -25,4 +25,53 @@ public class KafkaConsumer {
                     log.info("Updated post count for userId={} to {}", event.userId(), profile.getNumberOfPosts());
                 });
     }
+
+    @Component
+    @RequiredArgsConstructor
+    public static class FollowsConsumer {
+
+        private final UserProfileRepository userProfileRepository;
+
+        @KafkaListener(topics = "follower-event", groupId = "profile-service", containerFactory = "followsKafkaListenerContainerFactory")
+        public void incrementFollowers(Long userId) {
+            userProfileRepository.getUserProfileByUserId(userId)
+                    .ifPresent(profile -> {
+                        profile.setNumberOfSubscribers(profile.getNumberOfSubscribers() + 1);
+                        userProfileRepository.save(profile);
+                        log.info("Increased followers count for userId={} to {}", userId, profile.getNumberOfSubscribers());
+                    });
+        }
+
+        @KafkaListener(topics = "following-event", groupId = "profile-service", containerFactory = "followsKafkaListenerContainerFactory")
+        public void incrementFollowings(Long userId) {
+            userProfileRepository.getUserProfileByUserId(userId)
+                    .ifPresent(profile -> {
+                        profile.setNumberOfSubscriptions(profile.getNumberOfSubscriptions() + 1);
+                        userProfileRepository.save(profile);
+                        log.info("Increased following count for userId={} to {}", userId, profile.getNumberOfSubscriptions());
+                    });
+        }
+
+        @KafkaListener(topics = "follower-remove-event", groupId = "profile-service", containerFactory = "followsKafkaListenerContainerFactory")
+        public void decrementFollowers(Long userId) {
+            userProfileRepository.getUserProfileByUserId(userId)
+                    .ifPresent(profile -> {
+                        profile.setNumberOfSubscribers(Math.max(profile.getNumberOfSubscribers() - 1, 0));
+                        userProfileRepository.save(profile);
+                        log.info("Decreased followers count for userId={} to {}", userId, profile.getNumberOfSubscribers());
+                    });
+        }
+
+        @KafkaListener(topics = "following-remove-event", groupId = "profile-service", containerFactory = "followsKafkaListenerContainerFactory")
+        public void decrementFollowing(Long userId) {
+            userProfileRepository.getUserProfileByUserId(userId)
+                    .ifPresent(profile -> {
+                        profile.setNumberOfSubscriptions(Math.max(profile.getNumberOfSubscriptions() - 1, 0));
+                        userProfileRepository.save(profile);
+                        log.info("Decreased following count for userId={} to {}", userId, profile.getNumberOfSubscriptions());
+                    });
+        }
+
+    }
 }
+

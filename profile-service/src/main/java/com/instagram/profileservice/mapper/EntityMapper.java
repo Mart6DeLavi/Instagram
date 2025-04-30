@@ -1,6 +1,7 @@
 package com.instagram.profileservice.mapper;
 
-import com.instagram.profileservice.dto.AllProfileInformationDto;
+import com.instagram.dto.feign.ProfileInformationOfSubscriptionsDto;
+import com.instagram.dto.AllProfileInformationDto;
 import com.instagram.profileservice.entity.UserProfile;
 
 public class EntityMapper {
@@ -13,6 +14,16 @@ public class EntityMapper {
                 .numberOfSubscriptions(userProfile.getNumberOfSubscriptions())
                 .aboutMyself(userProfile.getAboutMyself())
                 .isPublic(userProfile.getIsPublic())
+                .isVerified(userProfile.getIsVerified())
+                .isOnline(userProfile.getIsOnline())
+                .build();
+    }
+
+    public static ProfileInformationOfSubscriptionsDto mapToProfileInformationOfSubscriptionsDto(UserProfile userProfile) {
+        return ProfileInformationOfSubscriptionsDto.builder()
+                .userId(userProfile.getUserId())
+                .username(userProfile.getUsername())
+                .avatarUrl(userProfile.getAvatarUrl())
                 .isVerified(userProfile.getIsVerified())
                 .isOnline(userProfile.getIsOnline())
                 .build();

@@ -1,4 +1,4 @@
-package com.instagram.profileservice.dto;
+package com.instagram.dto;
 
 import lombok.Builder;
 

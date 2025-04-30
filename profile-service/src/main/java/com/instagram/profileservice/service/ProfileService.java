@@ -1,15 +1,16 @@
 package com.instagram.profileservice.service;
 
+import com.instagram.dto.feign.ProfileInformationOfSubscriptionsDto;
 import com.instagram.exception.TokenNotFoundException;
 import com.instagram.exception.UserNotFoundException;
 import com.instagram.profileservice.client.AuthenticationServiceClient;
 import com.instagram.profileservice.client.UserDataManagementClient;
-import com.instagram.profileservice.dto.AllProfileInformationDto;
+import com.instagram.dto.AllProfileInformationDto;
 import com.instagram.profileservice.dto.UserProfileUpdateInformationDto;
 import com.instagram.profileservice.entity.UserProfile;
 import com.instagram.profileservice.mapper.EntityMapper;
 import com.instagram.profileservice.repository.UserProfileRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +20,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -46,6 +51,19 @@ public class ProfileService {
         log.info("Profile found for username {}", username);
 
         return EntityMapper.mapToProfileInformationDto(userProfile);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProfileInformationOfSubscriptionsDto> getAllProfileInformationOfSubscriptions(@NonNull List<Long> userIds) {
+        Map<Long, UserProfile> profiles = userProfileRepository.findAllByUserIds(userIds).stream()
+                .collect(Collectors.toMap(UserProfile::getUserId, Function.identity()));
+
+        return userIds.stream()
+                .map(id -> EntityMapper.mapToProfileInformationOfSubscriptionsDto(
+                        Optional.ofNullable(profiles.get(id))
+                                .orElseThrow(() -> new UserNotFoundException("User not found for id: " + id))
+                ))
+                .toList();
     }
 
     @Transactional
