@@ -40,21 +40,31 @@ public class ProfileService {
     private final AuthenticationServiceClient authenticationServiceClient;
     private final FollowServiceClient followServiceClient;
     private final S3Service s3Service;
+    private final RedisProfileCacheService redisProfileCacheService;
 
     private static final Map<String, Long> userCache = new ConcurrentHashMap<>();
 
+    @Transactional(readOnly = true)
     public AllProfileInformationDto getAllProfileInformation(@NonNull String username) {
         validateTokenExists(username);
         Long userId = getUserIdByUsername(username);
+
+        Optional<UserProfile> cachedProfile = redisProfileCacheService.getCachedProfile(username);
+        if (cachedProfile.isPresent()) {
+            log.info("Returned cached profile for {}", username);
+            return EntityMapper.mapToProfileInformationDto(cachedProfile.get());
+        }
 
         UserProfile userProfile = userProfileRepository
                 .getUserProfileByUserId(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found for id: " + userId));
 
-        log.info("Profile found for username {}", username);
+        redisProfileCacheService.cacheProfile(userProfile);
+        log.info("Profile found and cached for username {}", username);
 
         return EntityMapper.mapToProfileInformationDto(userProfile);
     }
+
 
     @Transactional(readOnly = true)
     public List<ProfileInformationOfSubscriptionsDto> getAllProfileInformationOfSubscriptions(@NonNull List<Long> userIds) {
@@ -99,20 +109,22 @@ public class ProfileService {
                 .getUserProfileByUserId(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found for id: " + userId));
 
-        log.info("Profile found for username {}", username);
-
-        if (dto.aboutMyself() != null  && !dto.aboutMyself().isEmpty()) {
+        if (dto.aboutMyself() != null && !dto.aboutMyself().isEmpty()) {
             userProfile.setAboutMyself(dto.aboutMyself());
-            log.info("Profile about myself update for user: {}", username);
         }
 
         if (dto.isPublic() != null) {
             userProfile.setIsPublic(dto.isPublic());
-            log.info("Profile isPublic update for user: {}", username);
         }
 
-        return userProfileRepository.save(userProfile);
+        UserProfile updated = userProfileRepository.save(userProfile);
+
+        redisProfileCacheService.evictProfileFromCache(username);
+        log.info("Cache evicted for username {}", username);
+
+        return updated;
     }
+
 
     @Transactional
     public UserProfile createProfile(@NonNull String username, @NonNull String aboutMyself, @NonNull MultipartFile avatar)
@@ -144,7 +156,10 @@ public class ProfileService {
 
         userProfileRepository.delete(userProfile);
         userCache.remove(username);
+        redisProfileCacheService.evictProfileFromCache(username);
+        log.info("Cache evicted for deleted username {}", username);
     }
+
 
     private void validateTokenExists(String username) {
         String token = authenticationServiceClient.findTokenByUsername(username);
