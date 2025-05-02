@@ -136,7 +136,20 @@ public class PostService {
                     if (updateDto.tags() != null) {
                         post.setTags(updateDto.tags());
                     }
-                    return EntityMapper.toPostInformationDto(postRepository.save(post));
+
+                    Post updatedPost = postRepository.save(post);
+
+                    IndexingPostInformationDto indexingDto = IndexingPostInformationDto.builder()
+                            .postId(updatedPost.getId())
+                            .userId(updatedPost.getUserId())
+                            .description(updatedPost.getDescription())
+                            .tags(updatedPost.getTags())
+                            .build();
+
+                    searchIndexKafkaProducer.sendIndexingEvent(indexingDto);
+                    log.info("Updated post sent to Search Service via Kafka");
+
+                    return EntityMapper.toPostInformationDto(updatedPost);
                 })
                 .orElseThrow(() -> new NoSuchElementException("Post not found"));
     }
