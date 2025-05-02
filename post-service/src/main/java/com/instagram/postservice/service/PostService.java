@@ -1,26 +1,31 @@
 package com.instagram.postservice.service;
 
+import com.instagram.dto.kafka.IndexingPostInformationDto;
+import com.instagram.dto.kafka.Location;
 import com.instagram.exception.TokenNotFoundException;
 import com.instagram.exception.UserNotFoundException;
 import com.instagram.postservice.client.AuthenticationServiceClient;
 import com.instagram.postservice.client.UserDataManagementClient;
-import com.instagram.postservice.document.Location;
 import com.instagram.postservice.document.Media;
 import com.instagram.postservice.document.Post;
 import com.instagram.postservice.dto.PostInformationDto;
+import com.instagram.postservice.dto.UpdatePostInformationDto;
 import com.instagram.postservice.kafka.KafkaProducer;
 import com.instagram.postservice.mapper.EntityMapper;
 import com.instagram.postservice.repository.PostRepository;
+import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -33,8 +38,10 @@ public class PostService {
     private final UserDataManagementClient userDataManagementClient;
     private final S3Service s3Service;
     private final KafkaProducer kafkaProducer;
+    private final KafkaProducer.SearchIndexKafkaProducer searchIndexProducer;
 
     private static final Map<String, Long> userCache = new ConcurrentHashMap<>();
+    private final KafkaProducer.SearchIndexKafkaProducer searchIndexKafkaProducer;
 
     public List<PostInformationDto> getAllPostsByUsername(@NonNull String username) {
         Long userId = getUserIdByUsername(username);
@@ -53,6 +60,15 @@ public class PostService {
         var post = postRepository.getPostByPostId(postObjectId);
 
         return post.isPresent();
+    }
+
+    public PostInformationDto getPostById(@NonNull String postId) {
+        ObjectId postObjectId = new ObjectId(postId);
+
+        var post = postRepository.getPostByPostId(postObjectId)
+                .orElseThrow(() -> new NoSuchElementException("Post not found"));
+
+        return EntityMapper.toPostInformationDto(post);
     }
 
     public PostInformationDto createNewPost(String username,
@@ -94,7 +110,35 @@ public class PostService {
 
         log.info("message sent to kafka");
 
+        IndexingPostInformationDto indexingInformation = IndexingPostInformationDto.builder()
+                .postId(post.getId())
+                .userId(userId)
+                .description(post.getDescription())
+                .tags(post.getTags())
+                .location(post.getLocation())
+                .build();
+
+        searchIndexKafkaProducer.sendIndexingEvent(indexingInformation);
+        log.info("message sent to search service");
+
         return EntityMapper.toPostInformationDto(postRepository.save(post));
+    }
+
+    @Transactional
+    public PostInformationDto updatePostById(@NonNull String postId, @Valid UpdatePostInformationDto updateDto) {
+        ObjectId postObjectId = new ObjectId(postId);
+        return postRepository.getPostByPostId(postObjectId).stream()
+                .findFirst()
+                .map(post -> {
+                    if (updateDto.description() != null) {
+                        post.setDescription(updateDto.description());
+                    }
+                    if (updateDto.tags() != null) {
+                        post.setTags(updateDto.tags());
+                    }
+                    return EntityMapper.toPostInformationDto(postRepository.save(post));
+                })
+                .orElseThrow(() -> new NoSuchElementException("Post not found"));
     }
 
     private String resolveType(MultipartFile file) {

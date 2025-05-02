@@ -1,6 +1,7 @@
 package com.instagram.postservice.controller;
 
 import com.instagram.postservice.dto.PostInformationDto;
+import com.instagram.postservice.dto.UpdatePostInformationDto;
 import com.instagram.postservice.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,11 @@ public class PostController {
         return postService.isPostExist(postId);
     }
 
+    @GetMapping("/post/{postId}")
+    public PostInformationDto getPostByPostId(@PathVariable String postId) {
+        return postService.getPostById(postId);
+    }
+
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostInformationDto> createPost(
             @RequestParam("username") String username,
@@ -40,5 +46,13 @@ public class PostController {
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(postService.createNewPost(username, description, tags, latitude, longitude, locationName, files));
+    }
+
+    @PatchMapping("/update")
+    public ResponseEntity<PostInformationDto> updatePost(
+            @RequestHeader String postId,
+            @RequestBody UpdatePostInformationDto dto
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(postService.updatePostById(postId, dto));
     }
 }
