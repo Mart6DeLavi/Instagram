@@ -26,7 +26,7 @@ public class KafkaProducer {
         private static final String TOPIC = "search-indexing";
 
         public void sendIndexingEvent(IndexingPostInformationDto dto) {
-            kafkaTemplate.send(TOPIC, dto.postId().toString(), dto);
+            kafkaTemplate.send(TOPIC, dto);
         }
     }
 }

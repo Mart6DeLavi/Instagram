@@ -143,6 +143,7 @@ public class PostService {
                             .postId(updatedPost.getId())
                             .userId(updatedPost.getUserId())
                             .description(updatedPost.getDescription())
+                            .location(updatedPost.getLocation())
                             .tags(updatedPost.getTags())
                             .build();
 
