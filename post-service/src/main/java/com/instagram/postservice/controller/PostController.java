@@ -1,6 +1,6 @@
 package com.instagram.postservice.controller;
 
-import com.instagram.postservice.dto.PostInformationDto;
+import com.instagram.dto.PostInformationDto;
 import com.instagram.postservice.dto.UpdatePostInformationDto;
 import com.instagram.postservice.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +22,11 @@ public class PostController {
     @GetMapping("/all/{username}")
     public ResponseEntity<List<PostInformationDto>> getAllPosts(@PathVariable  String username) {
         return ResponseEntity.ok(postService.getAllPostsByUsername(username));
+    }
+
+    @GetMapping("/allById/{userId}")
+    public ResponseEntity<List<PostInformationDto>> getAllPostsByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(postService.getAllPostsByUserId(userId));
     }
 
     @GetMapping("/{postId}")

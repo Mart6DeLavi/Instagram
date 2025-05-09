@@ -1,4 +1,4 @@
-package com.instagram.postservice.document;
+package com.instagram.dto;
 
 import lombok.Builder;
 import lombok.Data;

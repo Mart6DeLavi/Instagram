@@ -6,9 +6,9 @@ import com.instagram.exception.TokenNotFoundException;
 import com.instagram.exception.UserNotFoundException;
 import com.instagram.postservice.client.AuthenticationServiceClient;
 import com.instagram.postservice.client.UserDataManagementClient;
-import com.instagram.postservice.document.Media;
+import com.instagram.dto.Media;
 import com.instagram.postservice.document.Post;
-import com.instagram.postservice.dto.PostInformationDto;
+import com.instagram.dto.PostInformationDto;
 import com.instagram.postservice.dto.UpdatePostInformationDto;
 import com.instagram.postservice.kafka.KafkaProducer;
 import com.instagram.postservice.mapper.EntityMapper;
@@ -47,9 +47,13 @@ public class PostService {
         Long userId = getUserIdByUsername(username);
         validateTokenExists(username);
 
-        List<Post> posts = postRepository.findAllByUserId(userId);
+        return postRepository.findAllByUserId(userId).stream()
+                .map(EntityMapper::toPostInformationDto)
+                .toList();
+    }
 
-        return posts.stream()
+    public List<PostInformationDto> getAllPostsByUserId(@NonNull Long userId) {
+        return postRepository.findAllByUserId(userId).stream()
                 .map(EntityMapper::toPostInformationDto)
                 .toList();
     }

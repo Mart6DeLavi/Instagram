@@ -1,5 +1,6 @@
 package com.instagram.postservice.document;
 
+import com.instagram.dto.Media;
 import com.instagram.dto.kafka.Location;
 import lombok.Builder;
 import lombok.Data;

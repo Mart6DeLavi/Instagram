@@ -1,7 +1,7 @@
 package com.instagram.postservice.mapper;
 
 import com.instagram.postservice.document.Post;
-import com.instagram.postservice.dto.PostInformationDto;
+import com.instagram.dto.PostInformationDto;
 
 public class EntityMapper {
 
