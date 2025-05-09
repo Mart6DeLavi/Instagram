@@ -1,0 +1,26 @@
+server:
+  port: 8011
+  error:
+    include-stacktrace: never
+
+spring:
+  application:
+    name: calls-service
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    url: ${POSTGRES_URL}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
