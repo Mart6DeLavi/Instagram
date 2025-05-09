@@ -1,0 +1,195 @@
+server:
+  port: 8013
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      routes:
+
+        - id: authentication-service
+          uri: lb://authentication-service
+          predicates:
+            - Path=/api/v1/auth/**
+
+        - id: user-data-management-service
+          uri: lb://user-data-management-service
+          predicates:
+            - Path=/api/v1/user-management/**
+
+        - id: profile-service
+          uri: lb://profile-service
+          predicates:
+            - Path=/api/v1/profile/**
+
+        - id: post-service
+          uri: lb://post-service
+          predicates:
+            - Path=/api/v1/posts/**
+
+        - id: calls-service
+          uri: lb://calls-service
+          predicates:
+            - Path=/api/v1/calls/**
+
+        - id: chat-service
+          uri: lb://chat-service
+          predicates:
+            - Path=/api/v1/chats/**
+            - Path=/api/v1/messages/**
+
+        - id: comments-service
+          uri: lb://comments-service
+          predicates:
+            - Path=/api/v1/comments/**
+
+        - id: feed-service
+          uri: lb://feed-service
+          predicates:
+            - Path=/api/v1/feed/**
+
+        - id: follow-service
+          uri: lb://follow-service
+          predicates:
+            - Path=/api/v1/follow/**
+
+        - id: like-service
+          uri: lb://like-service
+          predicates:
+            - Path=/api/v1/likes/**
+
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/v1/payments/**
+            - Path=/api/webhook/**
+
+        - id: search-service
+          uri: lb://search-service
+          predicates:
+            - Path=/api/v1/search/**
+
+
+        - id: authentication-service-docs
+          uri: lb://authentication-service
+          predicates:
+            - Path=/authentication-service/api-docs/**
+          filters:
+            - RewritePath=^/authentication-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+
+        - id: user-data-management-service-docs
+          uri: lb://user-data-management-service
+          predicates:
+            - Path=/user-data-management-service/api-docs/**
+          filters:
+            - RewritePath=^/user-data-management-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+
+        - id: profile-service-docs
+          uri: lb://profile-service
+          predicates:
+            - Path=/profile-service/api-docs/**
+          filters:
+            - RewritePath=^/profile-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+
+        - id: post-service-docs
+          uri: lb://post-service
+          predicates:
+            - Path=/post-service/api-docs/**
+          filters:
+            - RewritePath=^/post-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+
+        - id: calls-service-docs
+          uri: lb://calls-service
+          predicates:
+            - Path=/calls-service/api-docs/**
+          filters:
+            - RewritePath=^/calls-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+
+        - id: chat-service-docs
+          uri: lb://chat-service
+          predicates:
+            - Path=/chat-service/api-docs/**
+          filters:
+            - RewritePath=^/chat-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+
+        - id: comments-service-docs
+          uri: lb://comments-service
+          predicates:
+            - Path=/comments-service/api-docs/**
+          filters:
+            - RewritePath=^/comments-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+
+        - id: feed-service-docs
+          uri: lb://feed-service
+          predicates:
+            - Path=/feed-service/api-docs/**
+          filters:
+            - RewritePath=^/feed-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+
+        - id: follow-service-docs
+          uri: lb://follow-service
+          predicates:
+            - Path=/follow-service/api-docs/**
+          filters:
+            - RewritePath=^/follow-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+
+        - id: like-service-docs
+          uri: lb://like-service
+          predicates:
+            - Path=/like-service/api-docs/**
+          filters:
+            - RewritePath=^/like-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+
+        - id: payment-service-docs
+          uri: lb://payment-service
+          predicates:
+            - Path=/payment-service/api-docs/**
+          filters:
+            - RewritePath=^/payment-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+
+        - id: search-service-docs
+          uri: lb://search-service
+          predicates:
+            - Path=/search-service/api-docs/**
+          filters:
+            - RewritePath=^/search-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    urls:
+      - name: authentication-service
+        url: /authentication-service/api-docs
+      - name: user-data-management-service
+        url: /user-data-management-service/api-docs
+      - name: profile-service
+        url: /profile-service/api-docs
+      - name: post-service
+        url: /post-service/api-docs
+      - name: calls-service
+        url: /calls-service/api-docs
+      - name: chat-service
+        url: /chat-service/api-docs
+      - name: comments-service
+        url: /comments-service/api-docs
+      - name: feed-service
+        url: /feed-service/api-docs
+      - name: follow-service
+        url: /follow-service/api-docs
+      - name: like-service
+        url: /like-service/api-docs
+      - name: payment-service
+        url: /payment-service/api-docs
+      - name: search-service
+        url: /search-service/api-docs

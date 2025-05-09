@@ -13,34 +13,35 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
+    private static final List<String> EXCLUDE = List.of(
+            "/swagger-ui.html",
+            "/swagger-ui",
+            "/swagger-ui/",
+            "/swagger-ui/index.html",
+            "/swagger-ui/**",
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/authentication-service/api-docs",
+            "/authentication-service/api-docs/**"
+    );
 
-    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        return EXCLUDE.stream().anyMatch(path::startsWith);
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
-        String clientIpAddress = request.getRemoteAddr();
-        Bucket bucket = buckets.computeIfAbsent(clientIpAddress, k -> createNewBucket());
-
-        if (bucket.tryConsume(1)) {
-            filterChain.doFilter(request, response);
-        } else {
-            response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-            response.getWriter().write("Too many requests");
-        }
-    }
-
-    private Bucket createNewBucket() {
-        Refill refill = Refill.greedy(10, Duration.ofMinutes(1));
-        Bandwidth limit = Bandwidth.classic(10, refill);
-        return Bucket.builder()
-                .addLimit(limit)
-                .build();
+                                    FilterChain chain)
+            throws ServletException, IOException {
+        chain.doFilter(request, response);
     }
 }

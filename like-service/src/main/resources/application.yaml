@@ -35,7 +35,7 @@ eureka:
 
 springdoc:
   api-docs:
-    path: /like-service/api-docs
+    path: /v3/api-docs
   swagger-ui:
     path: swagger-ui
     operations-sorter: method

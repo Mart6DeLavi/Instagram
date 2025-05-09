@@ -20,7 +20,7 @@ eureka:
 
 springdoc:
   api-docs:
-    path: /chat-service/api-docs
+    path: /v3/api-docs
   swagger-ui:
     path: swagger-ui
     operations-sorter: method

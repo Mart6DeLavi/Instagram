@@ -56,7 +56,7 @@ aws:
 
 springdoc:
   api-docs:
-    path: /profile-service/api-docs
+    path: /v3/api-docs
   swagger-ui:
     path: swagger-ui
     operations-sorter: method
