@@ -3,11 +3,11 @@ server:
 
 spring:
   application:
-    name: authentication-service
+    name: security-service
 
   kafka:
     consumer:
-      group-id: authentication-service
+      group-id: security-service
     bootstrap-servers: localhost:9092
 
   data:

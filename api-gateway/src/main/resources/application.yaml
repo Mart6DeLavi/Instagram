@@ -9,8 +9,8 @@ spring:
     gateway:
       routes:
 
-        - id: authentication-service
-          uri: lb://authentication-service
+        - id: security-service
+          uri: lb://security-service
           predicates:
             - Path=/api/v1/auth/**
 
@@ -72,12 +72,12 @@ spring:
             - Path=/api/v1/search/**
 
 
-        - id: authentication-service-docs
-          uri: lb://authentication-service
+        - id: security-service-docs
+          uri: lb://security-service
           predicates:
-            - Path=/authentication-service/api-docs/**
+            - Path=/security-service/api-docs/**
           filters:
-            - RewritePath=^/authentication-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
+            - RewritePath=^/security-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
         - id: user-data-management-service-docs
           uri: lb://user-data-management-service
@@ -169,8 +169,8 @@ springdoc:
     path: /swagger-ui.html
     operations-sorter: method
     urls:
-      - name: authentication-service
-        url: /authentication-service/api-docs
+      - name: security-service
+        url: /security-service/api-docs
       - name: user-data-management-service
         url: /user-data-management-service/api-docs
       - name: profile-service
