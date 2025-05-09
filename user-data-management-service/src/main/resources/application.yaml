@@ -38,3 +38,10 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     fetch-registry: true
     register-with-eureka: true
+
+springdoc:
+  api-docs:
+    path: /user-data-management-service/api-docs
+  swagger-ui:
+    path: swagger-ui
+    operations-sorter: method
