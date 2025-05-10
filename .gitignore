@@ -18,3 +18,4 @@ build
 /search-service/.env
 /security-service/.env
 /user-data-management-service/.env
+/gradle/
