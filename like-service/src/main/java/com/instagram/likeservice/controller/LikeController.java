@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
+import java.util.concurrent.CompletableFuture;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/likes")
@@ -19,37 +22,34 @@ public class LikeController {
     private final LikeService likeService;
 
     @PostMapping("/post")
-    public ResponseEntity<LikeToPostInformationDto> likePost(@RequestBody @Valid LikeToPostCreationDto creationDto) {
-        return ResponseEntity.status(HttpStatus.OK).body(likeService.putLikeToPost(creationDto));
+    public CompletableFuture<ResponseEntity<LikeToPostInformationDto>> likePost(@RequestBody @Valid LikeToPostCreationDto creationDto) {
+        return likeService.putLikeToPost(creationDto)
+                .thenApply(ResponseEntity::ok)
+                .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null));
     }
 
     @PostMapping("/comment")
-    public ResponseEntity<LikeToCommentInformationDto> likeComment(@RequestBody @Valid LikeToCommentCreationDto creationDto) {
-        return ResponseEntity.status(HttpStatus.OK).body(likeService.putLikeToComment(creationDto));
+    public CompletableFuture<ResponseEntity<LikeToCommentInformationDto>> likeComment(@RequestBody @Valid LikeToCommentCreationDto creationDto) {
+        return likeService.putLikeToComment(creationDto)
+                .thenApply(ResponseEntity::ok)
+                .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null));
     }
 
     @DeleteMapping("/delete-post-like/{postId}")
-    public ResponseEntity<?> deletePost(
+    public CompletableFuture<ResponseEntity<String>> deletePost(
             @RequestHeader String username,
-            @PathVariable String postId) {
-        try {
-            likeService.unlikePost(postId, username);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+            @PathVariable String postId) throws AccessDeniedException {
+        return likeService.unlikePost(postId, username)
+                .thenApply(v -> ResponseEntity.ok("✅ Like removed"))
+                .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ " + ex.getMessage()));
     }
 
     @DeleteMapping("/delete-comment-like/{commentId}")
-    public ResponseEntity<?> deleteComment(
+    public CompletableFuture<ResponseEntity<String>> deleteComment(
             @RequestHeader String username,
-            @PathVariable String commentId
-    ) {
-        try {
-            likeService.unlikeComment(commentId, username);
-            return ResponseEntity.status(HttpStatus.OK).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+            @PathVariable String commentId) throws AccessDeniedException {
+        return likeService.unlikeComment(commentId, username)
+                .thenApply(v -> ResponseEntity.ok("✅ Like removed"))
+                .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ " + ex.getMessage()));
     }
 }

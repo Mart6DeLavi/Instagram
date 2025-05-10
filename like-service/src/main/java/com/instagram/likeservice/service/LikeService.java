@@ -24,12 +24,14 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.AccessDeniedException;
 import java.sql.Timestamp;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -47,8 +49,9 @@ public class LikeService {
 
     private static final Map<String, Long> userCache = new ConcurrentHashMap<>();
 
+    @Async
     @Transactional
-    public LikeToPostInformationDto putLikeToPost(@NonNull @Valid LikeToPostCreationDto creationDto) {
+    public CompletableFuture<LikeToPostInformationDto> putLikeToPost(@NonNull @Valid LikeToPostCreationDto creationDto) {
         Long userId = getUserIdByUsername(creationDto.username());
         validateTokenExists(creationDto.username());
         validPostExists(creationDto.postId());
@@ -59,17 +62,15 @@ public class LikeService {
                 .createdAt(new Timestamp(System.currentTimeMillis()))
                 .build();
 
-        PostEventDto likeToPost = PostEventDto.builder()
-                .postId(creationDto.postId())
-                .build();
+        kafkaProducer.sendLikeToPostEvent(PostEventDto.builder().postId(creationDto.postId()).build());
 
-        kafkaProducer.sendLikeToPostEvent(likeToPost);
-
-        return EntityMapper.mapToLikeToPostInformation(likeToPostRepository.save(like));
+        LikeToPost saved = likeToPostRepository.save(like);
+        return CompletableFuture.completedFuture(EntityMapper.mapToLikeToPostInformation(saved));
     }
 
+    @Async
     @Transactional
-    public LikeToCommentInformationDto putLikeToComment(@NonNull @Valid LikeToCommentCreationDto creationDto) {
+    public CompletableFuture<LikeToCommentInformationDto> putLikeToComment(@NonNull @Valid LikeToCommentCreationDto creationDto) {
         Long userId = getUserIdByUsername(creationDto.username());
         validateTokenExists(creationDto.username());
         validCommentExists(creationDto.commentId());
@@ -80,66 +81,50 @@ public class LikeService {
                 .createdAt(new Timestamp(System.currentTimeMillis()))
                 .build();
 
-        LikeCommentEventDto likeToComment = LikeCommentEventDto.builder()
-                .commentId(creationDto.commentId())
-                .build();
+        kafkaProducer.sendLikeToCommentEvent(LikeCommentEventDto.builder().commentId(creationDto.commentId()).build());
 
-        kafkaProducer.sendLikeToCommentEvent(likeToComment);
-        log.info("send");
-        return EntityMapper.mapToLikeToCommentInformation(likeToCommentRepository.save(like));
+        LikeToComment saved = likeToCommentRepository.save(like);
+        return CompletableFuture.completedFuture(EntityMapper.mapToLikeToCommentInformation(saved));
     }
 
+    @Async
     @Transactional
-    public void unlikePost(String postId, String username) throws AccessDeniedException {
+    public CompletableFuture<Void> unlikePost(String postId, String username) throws AccessDeniedException {
         Long userId = getUserIdByUsername(username);
         validateTokenExists(username);
         validPostExists(postId);
 
         boolean likeExists = likeToPostRepository.existsByPostIdAndUserId(postId, userId);
         if (!likeExists) {
-            log.warn("User '{}' tried to remove like from post '{}', but it doesn't belong to them", username, postId);
             throw new AccessDeniedException("You are not the owner of this like or like does not exist");
         }
 
         likeToPostRepository.deleteLikeToPostByPostIdAndUserId(postId, userId);
+        kafkaProducer.sendUnlikeToPostEvent(PostEventDto.builder().postId(postId).build());
 
-        PostEventDto postEventDto = PostEventDto.builder()
-                .postId(postId)
-                .build();
-
-        kafkaProducer.sendUnlikeToPostEvent(postEventDto);
-
-        log.info("Like deleted successfully on post by user '{}'", username);
+        return CompletableFuture.completedFuture(null);
     }
 
-
+    @Async
     @Transactional
-    public void unlikeComment(String commentId, String username) throws AccessDeniedException {
+    public CompletableFuture<Void> unlikeComment(String commentId, String username) throws AccessDeniedException {
         Long userId = getUserIdByUsername(username);
         validateTokenExists(username);
         validCommentExists(commentId);
 
         boolean likeExists = likeToCommentRepository.existsByCommentIdAndUserId(commentId, userId);
         if (!likeExists) {
-            log.warn("User '{}' tried to remove like from comment '{}', but it doesn't belong to them", username, commentId);
             throw new AccessDeniedException("You are not the owner of this like or like does not exist");
         }
 
         likeToCommentRepository.deleteLikeToCommentByCommentIdAndUserId(commentId, userId);
+        kafkaProducer.sendUnlikeToCommentEvent(LikeCommentEventDto.builder().commentId(commentId).build());
 
-        LikeCommentEventDto commentEventDto = LikeCommentEventDto.builder()
-                .commentId(commentId)
-                .build();
-
-        kafkaProducer.sendUnlikeToCommentEvent(commentEventDto);
-
-        log.info("Like deleted successfully on comment by user '{}'", username);
+        return CompletableFuture.completedFuture(null);
     }
-
 
     private void validateTokenExists(String username) {
         String token = authenticationServiceClient.findTokenByUsername(username);
-        log.info("Token found for user: {}", username);
         if (token == null || token.isEmpty()) {
             throw new TokenNotFoundException("Token not found for username: " + username);
         }
@@ -147,34 +132,20 @@ public class LikeService {
 
     private Long getUserIdByUsername(String username) {
         return userCache.computeIfAbsent(username, key -> {
-            log.info("Cache miss: requesting userId for username '{}'", key);
-
             Long id = userDataManagementClient.getUserIdByUsername(key);
-
-            if (id == null) {
-                log.warn("User with username '{}' not found in userDataManagementClient", key);
-                throw new UserNotFoundException("User not found for username: " + key);
-            }
-
-            log.info("Retrieved and cached userId '{}' for username '{}'", id, key);
+            if (id == null) throw new UserNotFoundException("User not found for username: " + key);
             return id;
         });
     }
 
     private void validPostExists(String postId) {
-        var post = postServiceClient.isPostExist(postId);
-        log.info("Post found for postId: {}", postId);
-
-        if (!post) {
+        if (!postServiceClient.isPostExist(postId)) {
             throw new NoSuchElementException("Post not found for postId: " + postId);
         }
     }
 
     private void validCommentExists(String commentId) {
-        var comment = commentsServiceClient.isCommentExist(commentId);
-        log.info("Comment found for commentId: {}", commentId);
-
-        if (!comment) {
+        if (!commentsServiceClient.isCommentExist(commentId)) {
             throw new NoSuchElementException("Comment not found for commentId: " + commentId);
         }
     }
