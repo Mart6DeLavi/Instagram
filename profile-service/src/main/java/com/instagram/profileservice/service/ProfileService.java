@@ -11,6 +11,7 @@ import com.instagram.profileservice.dto.UserProfileUpdateInformationDto;
 import com.instagram.profileservice.entity.UserProfile;
 import com.instagram.profileservice.mapper.EntityMapper;
 import com.instagram.profileservice.repository.UserProfileRepository;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import jakarta.validation.Valid;
 import lombok.NonNull;
@@ -25,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -100,8 +102,29 @@ public class ProfileService {
     }
 
 
+    @Async
     @Transactional
-    public UserProfile updateProfileInformation(@NonNull String username, @Valid UserProfileUpdateInformationDto dto) {
+    public CompletableFuture<UserProfile> createProfileAsync(@NonNull String username, @NonNull String aboutMyself, @NonNull MultipartFile avatar) {
+        validateTokenExists(username);
+        String avatarUrl = s3Service.uploadFile(avatar);
+        Long userId = getUserIdByUsername(username);
+
+        UserProfile userProfile = UserProfile.builder()
+                .userId(userId)
+                .username(username)
+                .aboutMyself(aboutMyself)
+                .avatarUrl(avatarUrl)
+                .isOnline(false)
+                .updatedAt(new Timestamp(System.currentTimeMillis()))
+                .build();
+
+        return CompletableFuture.completedFuture(userProfileRepository.save(userProfile));
+    }
+
+
+    @Async
+    @Transactional
+    public CompletableFuture<UserProfile> updateProfileAsync(String username, UserProfileUpdateInformationDto dto) {
         validateTokenExists(username);
         Long userId = getUserIdByUsername(username);
 
@@ -117,36 +140,15 @@ public class ProfileService {
             userProfile.setIsPublic(dto.isPublic());
         }
 
-        UserProfile updated = userProfileRepository.save(userProfile);
-
         redisProfileCacheService.evictProfileFromCache(username);
-        log.info("Cache evicted for username {}", username);
+        log.info("Cache evicted for {}", username);
 
-        return updated;
+        return CompletableFuture.completedFuture(userProfileRepository.save(userProfile));
     }
 
-
+    @Async
     @Transactional
-    public UserProfile createProfile(@NonNull String username, @NonNull String aboutMyself, @NonNull MultipartFile avatar)
-    {
-        validateTokenExists(username);
-        String avatarUrl = s3Service.uploadFile(avatar);
-        Long userId = getUserIdByUsername(username);
-
-        UserProfile userProfile = UserProfile.builder()
-                .userId(userId)
-                .username(username)
-                .aboutMyself(aboutMyself)
-                .avatarUrl(avatarUrl)
-                .isOnline(false)
-                .updatedAt(new Timestamp(System.currentTimeMillis()))
-                .build();
-
-        return userProfileRepository.save(userProfile);
-    }
-
-    @Transactional
-    public void deleteUserProfile(@NonNull String username) {
+    public CompletableFuture<Void> deleteProfileAsync(String username) {
         validateTokenExists(username);
         Long userId = getUserIdByUsername(username);
 
@@ -155,9 +157,11 @@ public class ProfileService {
                 .orElseThrow(() -> new UserNotFoundException("User not found for id: " + userId));
 
         userProfileRepository.delete(userProfile);
-        userCache.remove(username);
         redisProfileCacheService.evictProfileFromCache(username);
-        log.info("Cache evicted for deleted username {}", username);
+        userCache.remove(username);
+
+        log.info("Deleted profile and evicted cache for {}", username);
+        return CompletableFuture.completedFuture(null);
     }
 
 

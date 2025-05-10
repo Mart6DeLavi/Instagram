@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,13 +25,14 @@ public class ProfileController {
     private final ProfileService profileService;
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<AllProfileInformationDto> createProfile(
+    public CompletableFuture<ResponseEntity<AllProfileInformationDto>> createProfile(
             @RequestPart("username") String username,
             @RequestPart("aboutMyself") String aboutMyself,
             @RequestPart("avatar") MultipartFile avatar
     ) {
-        UserProfile created = profileService.createProfile(username, aboutMyself, avatar);
-        return ResponseEntity.ok(EntityMapper.mapToProfileInformationDto(created));
+        return profileService.createProfileAsync(username, aboutMyself, avatar)
+                .thenApply(profile -> ResponseEntity.ok(EntityMapper.mapToProfileInformationDto(profile)))
+                .exceptionally(ex -> ResponseEntity.internalServerError().body(null));
     }
 
     @PostMapping("/subscriptions-info")
@@ -57,20 +59,18 @@ public class ProfileController {
 
 
     @PatchMapping("/update/{username}")
-    public UserProfile updateProfileInformation(
+    public CompletableFuture<ResponseEntity<UserProfile>> updateProfileInformation(
             @PathVariable String username,
             @RequestBody @Valid UserProfileUpdateInformationDto dto
     ) {
-        return profileService.updateProfileInformation(username, dto);
+        return profileService.updateProfileAsync(username, dto)
+                .thenApply(ResponseEntity::ok)
+                .exceptionally(ex -> ResponseEntity.internalServerError().build());
     }
-
     @DeleteMapping("/delete/{username}")
-    public ResponseEntity<?> deleteProfile(@PathVariable String username) {
-        try {
-            profileService.deleteUserProfile(username);
-            return ResponseEntity.ok().build();
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-        }
+    public CompletableFuture<ResponseEntity<String>> deleteProfile(@PathVariable String username) {
+        return profileService.deleteProfileAsync(username)
+                .thenApply(v -> ResponseEntity.ok("✅ Deleted"))
+                .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ " + ex.getMessage()));
     }
 }
