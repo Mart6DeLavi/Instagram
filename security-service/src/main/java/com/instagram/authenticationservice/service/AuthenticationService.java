@@ -17,10 +17,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.util.annotation.NonNull;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -33,16 +35,19 @@ public class AuthenticationService {
     private final JwtTokenRepository jwtTokenRepository;
     private final UserDataManagementClient userDataManagementClient;
 
+    @Async
     @Transactional
-    public void registerNewUser(@NonNull UserRegistrationDto userRegistrationDto) {
+    public CompletableFuture<Void> registerNewUser(@NonNull UserRegistrationDto userRegistrationDto) {
         try {
             kafkaProducer.sendRegistrationRequest(userRegistrationDto);
-            log.info("✅ Message for register new user sent to user-data-management-service successfully");
+            log.info("✅ Kafka message sent for user: {}", userRegistrationDto.username());
         } catch (Exception ex) {
-            log.error("❌ Message for register new user sent to user-data-management-service failed");
-            throw new RuntimeException(ex);
+            log.error("❌ Kafka message send failed for user: {}", userRegistrationDto.username(), ex);
+            throw new RuntimeException("Failed to send registration request", ex);
         }
+        return CompletableFuture.completedFuture(null);
     }
+
 
     @Transactional
     public ResponseEntity<String> authenticateUser(@NonNull UserAuthenticationDto userAuthenticationDto) {

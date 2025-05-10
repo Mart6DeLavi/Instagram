@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.CompletableFuture;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -18,23 +20,21 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/register")
-    public String registerNewUser(@Valid @RequestBody UserRegistrationDto userRegistrationDto) {
-        try {
-            authenticationService.registerNewUser(userRegistrationDto);
-            log.info("Registered new user: {}", userRegistrationDto);
-            return "✅ User registered successfully";
-        } catch (Exception ex) {
-            return "❌ User registration failed. Message: " + ex.getMessage();
-        }
+    public CompletableFuture<ResponseEntity<String>> registerNewUser(@Valid @RequestBody UserRegistrationDto userRegistrationDto) {
+        return authenticationService.registerNewUser(userRegistrationDto)
+                .thenApply(v -> {
+                    log.info("✅ Registered user asynchronously: {}", userRegistrationDto.username());
+                    return ResponseEntity.ok("✅ User registration request sent");
+                })
+                .exceptionally(ex -> {
+                    log.error("❌ Async user registration failed", ex);
+                    return ResponseEntity.internalServerError().body("❌ Registration failed: " + ex.getCause().getMessage());
+                });
     }
 
     @PostMapping("/authenticate")
     public ResponseEntity<String> authenticateUser(@Valid @RequestBody UserAuthenticationDto userAuthenticationDto) {
-        try {
-            return authenticationService.authenticateUser(userAuthenticationDto);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
+        return authenticationService.authenticateUser(userAuthenticationDto);
     }
 
     @GetMapping("/findToken/{username}")
