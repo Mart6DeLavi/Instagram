@@ -17,12 +17,14 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -30,100 +32,80 @@ import java.util.function.Supplier;
 @Service
 @RequiredArgsConstructor
 public class UserDataManagementService {
+
     private final UserRepository userRepository;
     private final KafkaConsumer kafkaConsumer;
     private final EntityMapper mapper;
     private final SecurityConfig securityConfig;
 
     public UserResponseDto findUserByUsername(@NonNull String username) {
-        Optional<User> existedUser = Optional.of(userRepository.findUserByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException(
-                        String.format("No such user with username: %s", username)
-                )));
-        return mapper.mapToResponse(existedUser.orElse(null));
+        return userRepository.findUserByUsername(username)
+                .map(mapper::mapToResponse)
+                .orElseThrow(() -> new UserNotFoundException("No such user with username: " + username));
     }
 
     public String getUsernameByUserId(@NonNull Long userId) {
         return Optional.of(userRepository.getUsernameByUserId(userId))
-                .orElseThrow(() -> new UserNotFoundException(
-                        String.format("No such user with id: %d", userId
-                        )));
+                .orElseThrow(() -> new UserNotFoundException("No such user with id: " + userId));
     }
 
     public Long getUserIdByUsername(@NonNull String username) {
         return Optional.of(userRepository.getUserIdByUsername(username))
-                .orElseThrow(() -> new UserNotFoundException(
-                        String.format("No such user with username: %s", username
-                        )));
-    }
-
-    public void createNewUser(UserRegistrationDto userRegistrationDto) {
-        Optional<User> existedUser = userRepository.findUserByUsername(userRegistrationDto.username());
-        if (existedUser.isPresent()) {
-            throw new UserAlreadyExistsException(
-                    String.format("User %s already exist", userRegistrationDto.username()));
-        }
-
-        try {
-                var newUser = kafkaConsumer.pollRegistrationDto();
-                userRepository.save(mapper.mapToEntity(newUser));
-                log.info("✅ User registered successfully");
-        } catch (DataIntegrityViolationException ex) {
-            throw new UserRegistrationFailedException(
-                    String.format("User %s already exists", userRegistrationDto.username())
-            );
-        }
+                .orElseThrow(() -> new UserNotFoundException("No such user with username: " + username));
     }
 
     public UserExists authenticateUser(@NonNull UserAuthenticationDto userAuthenticationDto) {
-        Optional<User> existedUser = userRepository.findUserByUsername(userAuthenticationDto.username());
-
-        if (existedUser.isPresent()) {
-            try {
-                String rawPassword = userAuthenticationDto.password();
-                String storedHashedPassword = existedUser.get().getPassword();
-
-                if (securityConfig.passwordEncoder().matches(rawPassword, storedHashedPassword)) {
-                    return UserExists.FOUND;
-                }
-            } catch (Exception e) {
-                throw new UserAlreadyExistsException(
-                        String.format("Cannot authenticate user: %s", userAuthenticationDto.username())
-                );
-            }
-        }
-        return UserExists.NOTFOUND;
+        return userRepository.findUserByUsername(userAuthenticationDto.username())
+                .filter(user -> securityConfig.passwordEncoder().matches(userAuthenticationDto.password(), user.getPassword()))
+                .map(user -> UserExists.FOUND)
+                .orElse(UserExists.NOTFOUND);
     }
 
+    @Async
+    public CompletableFuture<Void> createNewUser(UserRegistrationDto userRegistrationDto) {
+        if (userRepository.findUserByUsername(userRegistrationDto.username()).isPresent()) {
+            throw new UserAlreadyExistsException("User already exists: " + userRegistrationDto.username());
+        }
 
-    public UpdatesStatus updateUserInformation(@NonNull UserRegistrationDto userRegistrationDto) {
         try {
-            return userRepository.findUserByUsername(userRegistrationDto.username())
-                    .map(user -> updateUsersFields(user, userRegistrationDto))
-                    .map(userRepository::saveAndFlush)
-                    .map(updatedStatus -> UpdatesStatus.UPDATED)
-                    .orElseThrow(() -> new UsernameNotFoundException(
-                            String.format("User wuth username %s not found", userRegistrationDto.username())
-                    ));
-        } catch (DataIntegrityViolationException ex) {
-            throw new RuntimeException("Failed to update user information due to data integrity violation", ex);
+            var newUser = kafkaConsumer.pollRegistrationDto();
+            userRepository.save(mapper.mapToEntity(newUser));
+            log.info("✅ User created asynchronously: {}", userRegistrationDto.username());
+        } catch (DataIntegrityViolationException e) {
+            throw new UserRegistrationFailedException("User registration failed: " + e.getMessage());
         }
+
+        return CompletableFuture.completedFuture(null);
     }
 
-    public String deleteUser(String username) {
-        var existedUser = userRepository.findUserByUsername(username);
-        existedUser.ifPresent(userRepository::delete);
-        return "User deleted successfully";
+    @Async
+    public CompletableFuture<UpdatesStatus> updateUserInformationAsync(@NonNull UserRegistrationDto dto) {
+        UpdatesStatus status = updateUserInformation(dto);
+        return CompletableFuture.completedFuture(status);
     }
 
-    private User updateUsersFields(@NonNull User user, @NonNull UserRegistrationDto userRegistrationDto) {
+    public UpdatesStatus updateUserInformation(@NonNull UserRegistrationDto dto) {
+        return userRepository.findUserByUsername(dto.username())
+                .map(user -> updateUsersFields(user, dto))
+                .map(userRepository::saveAndFlush)
+                .map(user -> UpdatesStatus.UPDATED)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + dto.username()));
+    }
+
+    @Async
+    public CompletableFuture<String> deleteUserAsync(String username) {
+        userRepository.findUserByUsername(username)
+                .ifPresent(userRepository::delete);
+        return CompletableFuture.completedFuture("User deleted successfully");
+    }
+
+    private User updateUsersFields(@NonNull User user, @NonNull UserRegistrationDto dto) {
         Map<Supplier<Object>, Consumer<Object>> fieldMapping = Map.of(
-                userRegistrationDto::firstName, value -> user.setFirstName((String) value),
-                userRegistrationDto::lastName, value -> user.setLastName((String) value),
-                userRegistrationDto::email, value -> user.setEmail((String) value),
-                userRegistrationDto::username, value -> user.setUsername((String) value)
+                dto::firstName, value -> user.setFirstName((String) value),
+                dto::lastName, value -> user.setLastName((String) value),
+                dto::email, value -> user.setEmail((String) value),
+                dto::username, value -> user.setUsername((String) value)
         );
-
         fieldMapping.forEach((getter, setter) -> Optional.ofNullable(getter.get()).ifPresent(setter));
         return user;
     }

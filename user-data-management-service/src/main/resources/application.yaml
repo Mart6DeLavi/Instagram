@@ -23,6 +23,13 @@ spring:
     consumer:
       group-id: user-data-management-service
 
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+        queue-capacity: 100
+
 topics:
   authentication-service:
     user-management-service:
