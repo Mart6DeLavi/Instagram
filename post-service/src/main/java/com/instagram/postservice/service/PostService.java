@@ -18,6 +18,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -75,13 +77,15 @@ public class PostService {
         return EntityMapper.toPostInformationDto(post);
     }
 
-    public PostInformationDto createNewPost(String username,
-                                            String description,
-                                            List<String> tags,
-                                            double latitude,
-                                            double longitude,
-                                            String locationName,
-                                            List<MultipartFile> files) {
+    @Async
+    @Transactional
+    public CompletableFuture<PostInformationDto> createNewPostAsync(String username,
+                                                                    String description,
+                                                                    List<String> tags,
+                                                                    double latitude,
+                                                                    double longitude,
+                                                                    String locationName,
+                                                                    List<MultipartFile> files) {
 
         Long userId = getUserIdByUsername(username);
         validateTokenExists(username);
@@ -110,26 +114,28 @@ public class PostService {
                 .commentsCount(0)
                 .build();
 
-        kafkaProducer.sendPostCreatedEvent(userId);
+        Post savedPost = postRepository.save(post);
 
-        log.info("message sent to kafka");
+        kafkaProducer.sendPostCreatedEvent(userId);
+        log.info("Kafka event sent for user {}", userId);
 
         IndexingPostInformationDto indexingInformation = IndexingPostInformationDto.builder()
-                .postId(post.getId())
+                .postId(savedPost.getId())
                 .userId(userId)
-                .description(post.getDescription())
-                .tags(post.getTags())
-                .location(post.getLocation())
+                .description(description)
+                .tags(tags)
+                .location(location)
                 .build();
 
         searchIndexKafkaProducer.sendIndexingEvent(indexingInformation);
-        log.info("message sent to search service");
+        log.info("Search indexing event sent for post {}", savedPost.getId());
 
-        return EntityMapper.toPostInformationDto(postRepository.save(post));
+        return CompletableFuture.completedFuture(EntityMapper.toPostInformationDto(savedPost));
     }
 
+    @Async
     @Transactional
-    public PostInformationDto updatePostById(@NonNull String postId, @Valid UpdatePostInformationDto updateDto) {
+    public CompletableFuture<PostInformationDto> updatePostAsync(String postId, @Valid UpdatePostInformationDto updateDto) {
         ObjectId postObjectId = new ObjectId(postId);
         return postRepository.getPostByPostId(postObjectId).stream()
                 .findFirst()
@@ -152,9 +158,9 @@ public class PostService {
                             .build();
 
                     searchIndexKafkaProducer.sendIndexingEvent(indexingDto);
-                    log.info("Updated post sent to Search Service via Kafka");
+                    log.info("Updated post {} sent to Search Service via Kafka", postId);
 
-                    return EntityMapper.toPostInformationDto(updatedPost);
+                    return CompletableFuture.completedFuture(EntityMapper.toPostInformationDto(updatedPost));
                 })
                 .orElseThrow(() -> new NoSuchElementException("Post not found"));
     }

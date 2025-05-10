@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,7 +21,7 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping("/all/{username}")
-    public ResponseEntity<List<PostInformationDto>> getAllPosts(@PathVariable  String username) {
+    public ResponseEntity<List<PostInformationDto>> getAllPosts(@PathVariable String username) {
         return ResponseEntity.ok(postService.getAllPostsByUsername(username));
     }
 
@@ -40,7 +41,7 @@ public class PostController {
     }
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PostInformationDto> createPost(
+    public CompletableFuture<ResponseEntity<PostInformationDto>> createPost(
             @RequestParam("username") String username,
             @RequestParam("description") String description,
             @RequestParam("tags") List<String> tags,
@@ -49,15 +50,18 @@ public class PostController {
             @RequestParam("locationName") String locationName,
             @RequestPart("files") List<MultipartFile> files
     ) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(postService.createNewPost(username, description, tags, latitude, longitude, locationName, files));
+        return postService.createNewPostAsync(username, description, tags, latitude, longitude, locationName, files)
+                .thenApply(post -> ResponseEntity.status(HttpStatus.CREATED).body(post))
+                .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null));
     }
 
     @PatchMapping("/update")
-    public ResponseEntity<PostInformationDto> updatePost(
+    public CompletableFuture<ResponseEntity<PostInformationDto>> updatePost(
             @RequestHeader String postId,
             @RequestBody UpdatePostInformationDto dto
     ) {
-        return ResponseEntity.status(HttpStatus.OK).body(postService.updatePostById(postId, dto));
+        return postService.updatePostAsync(postId, dto)
+                .thenApply(ResponseEntity::ok)
+                .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build());
     }
 }
