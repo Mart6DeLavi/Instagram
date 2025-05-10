@@ -1,0 +1,12 @@
+services:
+  feed-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: feed-service
+    working_dir: /app
+    volumes:
+      - ./build/libs/feed-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    ports:
+      - "8012:8012"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    command: ["java", "-jar", "app.jar"]

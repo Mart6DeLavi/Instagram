@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  user-data-management-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: user-data-management-service
+    working_dir: /app
+    volumes:
+      - ./build/libs/user-data-management-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    ports:
+      - "8000:8000"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    command: ["java", "-jar", "app.jar"]
+    depends_on:
+      - discovery-server
+      - postgres
+      - kafka
+
+  discovery-server:
+    image: discovery-server-discovery-service:latest
+    ports:
+      - "8761:8761"
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: Instagram_User_Data_Management_Service
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5437:5432"
+    volumes:
+      - userdata_pgdata:/var/lib/postgresql/data
+
+  kafka:
+    image: bitnami/kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    depends_on:
+      - zookeeper
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+
+volumes:
+  userdata_pgdata:

@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  payment-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: payment-service
+    working_dir: /app
+    volumes:
+      - ./build/libs/payment-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    ports:
+      - "8009:8009"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+
+      POSTGRES_URL: jdbc:postgresql://payment-postgres:5432/Instagram_Payment_Service
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+      STRIPE_API_SECRET_KEY: ${STRIPE_API_SECRET_KEY}
+      STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY}
+      STRIPE_WEBHOOK_KEY: ${STRIPE_WEBHOOK_KEY}
+
+    command: ["java", "-jar", "app.jar"]
+    depends_on:
+      - discovery-server
+      - payment-postgres
+
+  payment-postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: Instagram_Payment_Service
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5436:5432"
+    volumes:
+      - payment_pgdata:/var/lib/postgresql/data
+
+  discovery-server:
+    image: discovery-server-discovery-service:latest
+    ports:
+      - "8761:8761"
+
+volumes:
+  payment_pgdata:

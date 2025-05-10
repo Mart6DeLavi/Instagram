@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  chat-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: chat-service
+    working_dir: /app
+    volumes:
+      - ./build/libs/chat-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    ports:
+      - "8010:8010"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MONGODB_USERNAME: ${MONGODB_USERNAME}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+    command: ["java", "-jar", "app.jar"]

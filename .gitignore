@@ -8,3 +8,13 @@ build
 /.gradle/*
 >>>>>>> master
 /amplicode.xml
+/like-service/.env
+/chat-service/.env
+/calls-service/.env
+/follow-service/.env
+/post-service/.env
+/payment-service/ .env
+/profile-service/.env
+/search-service/.env
+/security-service/.env
+/user-data-management-service/.env
