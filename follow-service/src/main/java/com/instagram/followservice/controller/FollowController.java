@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
@@ -15,21 +16,23 @@ public class FollowController {
     private final SubscriptionService subscriptionService;
 
     @PostMapping("/subscribe")
-    public ResponseEntity<Void> followUser(
+    public CompletableFuture<ResponseEntity<String>> followUser(
             @RequestParam String followerUsername,
             @RequestParam String followeeUsername
     ) {
-        subscriptionService.makeFollower(followerUsername, followeeUsername);
-        return ResponseEntity.ok().build();
+        return subscriptionService.makeFollower(followerUsername, followeeUsername)
+                .thenApply(v -> ResponseEntity.ok("✅ Subscribed"))
+                .exceptionally(ex -> ResponseEntity.badRequest().body("❌ " + ex.getMessage()));
     }
 
     @DeleteMapping("/unsubscribe")
-    public ResponseEntity<Void> unfollowUser(
+    public CompletableFuture<ResponseEntity<String>> unfollowUser(
             @RequestParam String followerUsername,
             @RequestParam String followeeUsername
     ) {
-        subscriptionService.deleteFollowing(followerUsername, followeeUsername);
-        return ResponseEntity.ok().build();
+        return subscriptionService.deleteFollowing(followerUsername, followeeUsername)
+                .thenApply(v -> ResponseEntity.ok("✅ Unsubscribed"))
+                .exceptionally(ex -> ResponseEntity.badRequest().body("❌ " + ex.getMessage()));
     }
 
     @GetMapping("/followers/{userId}")
