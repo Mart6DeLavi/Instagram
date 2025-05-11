@@ -8,7 +8,7 @@ services:
     ports:
       - "8011:8011"
     environment:
-      POSTGRES_URL: jdbc:postgresql://db:5432/Instagram_Calls_Service
+      POSTGRES_URL: jdbc:postgresql://postgres-calls:5432/Instagram_Calls_Service
       POSTGRES_USERNAME: postgres
       POSTGRES_PASSWORD: 28859013
       SPRING_PROFILES_ACTIVE: prod

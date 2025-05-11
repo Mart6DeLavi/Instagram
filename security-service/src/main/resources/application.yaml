@@ -8,7 +8,7 @@ spring:
   kafka:
     consumer:
       group-id: security-service
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:9092
 
   data:
     redis:
@@ -28,7 +28,7 @@ spring:
           max-wait: -1ms
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/Instagram_Authentication_Service_Redis_Backup
+    url: jdbc:postgresql://postgres-auth:5432/Instagram_Authentication_Service_Redis_Backup
     username: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver

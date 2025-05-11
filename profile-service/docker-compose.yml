@@ -12,7 +12,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: prod
 
-      POSTGRES_URL: jdbc:postgresql://postgres:5432/Instagram_Profile_Service
+      POSTGRES_URL: jdbc:postgresql://postgres-profile:5432/Instagram_Profile_Service
       POSTGRES_USERNAME: ${POSTGRES_USERNAME}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 

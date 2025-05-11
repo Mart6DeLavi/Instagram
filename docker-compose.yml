@@ -1,0 +1,368 @@
+version: "3.9"
+
+services:
+  discovery-server:
+    image: discovery-server-discovery-service:latest
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    restart: always
+
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    restart: always
+
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_CFG_PROCESS_ROLES: controller,broker
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_KRAFT_CLUSTER_ID: WC0Obcu3RlSNrCxBuayJ7g
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+
+
+  redis:
+    image: redis:7
+    container_name: redis
+    command: redis-server --requirepass redispass
+    ports:
+      - "6379:6379"
+    restart: always
+
+  postgres-auth:
+    image: postgres:16
+    container_name: postgres-auth
+    environment:
+      POSTGRES_DB: Instagram_Authentication_Service_Redis_Backup
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth_pgdata:/var/lib/postgresql/data
+
+  postgres-user:
+    image: postgres:16
+    container_name: postgres-user
+    environment:
+      POSTGRES_DB: Instagram_User_Data_Management_Service
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - user_pgdata:/var/lib/postgresql/data
+
+  postgres-follow:
+    image: postgres:16
+    container_name: postgres-follow
+    environment:
+      POSTGRES_DB: Instagram_Follow_Service
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - follow_pgdata:/var/lib/postgresql/data
+
+  postgres-like:
+    image: postgres:16
+    container_name: postgres-like
+    environment:
+      POSTGRES_DB: Instagram_Like_Service
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - like_pgdata:/var/lib/postgresql/data
+
+  postgres-payment:
+    image: postgres:16
+    container_name: postgres-payment
+    environment:
+      POSTGRES_DB: Instagram_Payment_Service
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5436:5432"
+    volumes:
+      - payment_pgdata:/var/lib/postgresql/data
+
+  postgres-calls:
+    image: postgres:16
+    container_name: postgres-calls
+    environment:
+      POSTGRES_DB: Instagram_Calls_Service
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5437:5432"
+    volumes:
+      - calls_pgdata:/var/lib/postgresql/data
+
+  postgres-profile:
+    image: postgres:16
+    container_name: postgres-profile
+    environment:
+      POSTGRES_DB: Instagram_Profile_Service
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5438:5432"
+    volumes:
+      - profile_pgdata:/var/lib/postgresql/data
+
+  # Microservices (jars are launched based on Temurin)
+  security-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: security-service
+    working_dir: /app
+    volumes:
+      - ./security-service/build/libs/security-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8001:8001"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_USERNAME: ${REDIS_USERNAME}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    depends_on:
+      - redis
+      - postgres-auth
+      - kafka
+      - discovery-server
+
+  user-data-management-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: user-data-management-service
+    working_dir: /app
+    volumes:
+      - ./user-data-management-service/build/libs/user-data-management-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8000:8000"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - postgres-user
+      - kafka
+      - discovery-server
+
+  profile-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: profile-service
+    working_dir: /app
+    volumes:
+      - ./profile-service/build/libs/profile-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8002:8002"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_URL: jdbc:postgresql://postgres-user:5432/Instagram_User_Data_Management_Service
+      REDIS_HOST: ${LOCAL_REDIS_HOST}
+      REDIS_PORT: ${LOCAL_REDIS_PORT}
+      REDIS_PASSWORD: ${LOCAL_REDIS_PASSWORD}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+    depends_on:
+      - postgres-user
+      - redis
+      - kafka
+      - discovery-server
+
+  post-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: post-service
+    working_dir: /app
+    volumes:
+      - ./post-service/build/libs/post-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8004:8004"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MONGODB_USERNAME: ${MONGODB_USERNAME}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+    depends_on:
+      - kafka
+      - discovery-server
+
+  comments-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: comments-service
+    working_dir: /app
+    volumes:
+      - ./comments-service/build/libs/comments-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8005:8005"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MONGODB_USERNAME: ${MONGODB_USERNAME}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+    depends_on:
+      - kafka
+      - discovery-server
+
+  like-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: like-service
+    working_dir: /app
+    volumes:
+      - ./like-service/build/libs/like-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8006:8006"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - postgres-like
+      - kafka
+      - discovery-server
+
+  follow-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: follow-service
+    working_dir: /app
+    volumes:
+      - ./follow-service/build/libs/follow-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8007:8007"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_URL: jdbc:postgresql://postgres-follow:5432/Instagram_Follow_Service
+      REDIS_HOST: ${LOCAL_REDIS_HOST}
+      REDIS_PORT: ${LOCAL_REDIS_PORT}
+      REDIS_PASSWORD: ${LOCAL_REDIS_PASSWORD}
+    depends_on:
+      - postgres-follow
+      - redis
+      - kafka
+      - discovery-server
+
+  search-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: search-service
+    working_dir: /app
+    volumes:
+      - ./search-service/build/libs/search-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8008:8008"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      ELASTICSEARCH_HOST: ${ELASTICSEARCH_HOST}
+      ELASTICSEARCH_PORT: ${ELASTICSEARCH_PORT}
+      ELASTICSEARCH_API_KEY: ${ELASTICSEARCH_API_KEY}
+    depends_on:
+      - kafka
+      - discovery-server
+
+  payment-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: payment-service
+    working_dir: /app
+    volumes:
+      - ./payment-service/build/libs/payment-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8009:8009"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      STRIPE_API_SECRET_KEY: ${STRIPE_API_SECRET_KEY}
+      STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY}
+      STRIPE_WEBHOOK_KEY: ${STRIPE_WEBHOOK_KEY}
+    depends_on:
+      - postgres-payment
+      - discovery-server
+
+  chat-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: chat-service
+    working_dir: /app
+    volumes:
+      - ./chat-service/build/libs/chat-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8010:8010"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      MONGODB_USERNAME: ${MONGODB_USERNAME}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+    depends_on:
+      - kafka
+      - discovery-server
+
+  calls-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: calls-service
+    working_dir: /app
+    volumes:
+      - ./calls-service/build/libs/calls-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8011:8011"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - postgres-calls
+      - kafka
+      - discovery-server
+
+  feed-service:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: feed-service
+    working_dir: /app
+    volumes:
+      - ./feed-service/build/libs/feed-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8012:8012"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    depends_on:
+      - kafka
+      - discovery-server
+
+volumes:
+  auth_pgdata:
+  user_pgdata:
+  follow_pgdata:
+  like_pgdata:
+  payment_pgdata:
+  calls_pgdata:
+  profile_pgdata:

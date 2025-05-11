@@ -11,7 +11,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     username: ${POSTGRES_USERNAME}
     password: ${POSTGRES_PASSWORD}
-    url: ${POSTGRES_URL}
+    url: jdbc:postgresql://postgres-calls:5432/Instagram_Calls_Service
 
   jpa:
     hibernate:
