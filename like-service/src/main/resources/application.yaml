@@ -18,7 +18,7 @@ spring:
       ddl-auto: validate
 
   liquibase:
-    change-log: classpath:db/changelog/db.changelo-master.yml
+    change-log: classpath:db/changelog/db.changelog-master.yml
 
   kafka:
     bootstrap-servers: kafka:9092

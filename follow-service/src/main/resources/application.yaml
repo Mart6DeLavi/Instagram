@@ -28,7 +28,7 @@ spring:
       database: 0
 
   kafka:
-    bootstrap-servers: kafka  :9092
+    bootstrap-servers: kafka:9092
     consumer:
       group-id: follow-service
 
