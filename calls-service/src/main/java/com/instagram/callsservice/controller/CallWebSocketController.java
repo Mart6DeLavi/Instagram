@@ -21,50 +21,65 @@ public class CallWebSocketController {
 
     @MessageMapping("/call.initiate")
     public void initiateCall(@Payload SignalMessageDto message) {
-        Call call = callService.createCall(message.callerId(), message.calleeId(), message.callType());
+        callService.createCall(message.callerId(), message.calleeId(), message.callType())
+                .thenAccept(call -> {
+                    SignalMessageDto response = SignalMessageDto.builder()
+                            .callerId(call.getCallerId())
+                            .calleeId(call.getCalleeId())
+                            .callId(call.getId())
+                            .callType(call.getType())
+                            .type("INITIATE")
+                            .timestamp(call.getCreatedAt())
+                            .build();
 
-        SignalMessageDto response = SignalMessageDto.builder()
-                .callerId(call.getCallerId())
-                .calleeId(call.getCalleeId())
-                .callId(call.getId())
-                .callType(call.getType())
-                .type("INITIATE")
-                .timestamp(call.getCreatedAt())
-                .build();
-
-        messagingTemplate.convertAndSend("/topic/call/user." + call.getCalleeId(), response);
+                    messagingTemplate.convertAndSend("/topic/call/user." + call.getCalleeId(), response);
+                })
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
     }
 
     @MessageMapping("/call.accept")
     public void acceptCall(@Payload SignalMessageDto message) {
-        Call call = callService.updateCallStatus(message.callId(), CallStatus.ACCEPTED);
+        callService.updateCallStatus(message.callId(), CallStatus.ACCEPTED)
+                .thenAccept(call -> {
+                    SignalMessageDto response = SignalMessageDto.builder()
+                            .callerId(call.getCallerId())
+                            .calleeId(call.getCalleeId())
+                            .callId(call.getId())
+                            .callType(call.getType())
+                            .type("ACCEPT")
+                            .timestamp(LocalDateTime.now())
+                            .build();
 
-        SignalMessageDto response = SignalMessageDto.builder()
-                .callerId(call.getCallerId())
-                .calleeId(call.getCalleeId())
-                .callId(call.getId())
-                .callType(call.getType())
-                .type("ACCEPT")
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        messagingTemplate.convertAndSend("/topic/call/user." + call.getCallerId(), response);
+                    messagingTemplate.convertAndSend("/topic/call/user." + call.getCallerId(), response);
+                })
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
     }
 
     @MessageMapping("/call.end")
     public void endCall(@Payload SignalMessageDto message) {
-        Call call = callService.updateCallStatus(message.callId(), CallStatus.ENDED);
+        callService.updateCallStatus(message.callId(), CallStatus.ENDED)
+                .thenAccept(call -> {
+                    SignalMessageDto response = SignalMessageDto.builder()
+                            .callerId(call.getCallerId())
+                            .calleeId(call.getCalleeId())
+                            .callId(call.getId())
+                            .callType(call.getType())
+                            .type("END")
+                            .timestamp(LocalDateTime.now())
+                            .build();
 
-        SignalMessageDto response = SignalMessageDto.builder()
-                .callerId(call.getCallerId())
-                .calleeId(call.getCalleeId())
-                .callId(call.getId())
-                .callType(call.getType())
-                .type("END")
-                .timestamp(LocalDateTime.now())
-                .build();
-
-        messagingTemplate.convertAndSend("/topic/call/user." + call.getCallerId(), response);
-        messagingTemplate.convertAndSend("/topic/call/user." + call.getCalleeId(), response);
+                    messagingTemplate.convertAndSend("/topic/call/user." + call.getCallerId(), response);
+                    messagingTemplate.convertAndSend("/topic/call/user." + call.getCalleeId(), response);
+                })
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
     }
 }

@@ -6,28 +6,38 @@ import com.instagram.callsservice.model.CallStatus;
 import com.instagram.callsservice.model.CallType;
 import com.instagram.callsservice.repository.CallRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CallService {
 
     private final CallRepository callRepository;
 
-    public Call createCall(Long callerId, Long calleeId, CallType type) {
-        return callRepository.save(Call.builder()
+    @Async
+    public CompletableFuture<Call> createCall(Long callerId, Long calleeId, CallType type) {
+        Call call = Call.builder()
                 .callerId(callerId)
                 .calleeId(calleeId)
                 .type(type)
                 .status(CallStatus.CREATED)
                 .createdAt(LocalDateTime.now())
-                .build());
+                .build();
+
+        return CompletableFuture.completedFuture(callRepository.save(call));
     }
 
-    public Call updateCallStatus(Long callId, CallStatus status) {
+    @Async
+    @Transactional
+    public CompletableFuture<Call> updateCallStatus(Long callId, CallStatus status) {
         Call call = callRepository.findById(callId)
                 .orElseThrow(() -> new RuntimeException("Call not found"));
 
@@ -38,7 +48,7 @@ public class CallService {
             call.setEndedAt(LocalDateTime.now());
         }
 
-        return callRepository.save(call);
+        return CompletableFuture.completedFuture(callRepository.save(call));
     }
 
     public List<Call> getCallHistory(Long userId) {
