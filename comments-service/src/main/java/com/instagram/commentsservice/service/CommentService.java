@@ -15,35 +15,35 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CommentService {
+
     private final CommentRepository commentRepository;
     private final AuthenticationServiceClient authenticationServiceClient;
     private final UserDataManagementClient userDataManagementClient;
-
-    private static final Map<String, Long> userCache = new ConcurrentHashMap<>();
     private final KafkaProducer kafkaProducer;
 
+    private static final Map<String, Long> userCache = new ConcurrentHashMap<>();
 
     public boolean isCommentExist(String commentId) {
         ObjectId commentObjectId = new ObjectId(commentId);
-
-        var comment = commentRepository.getCommentByCommentId(commentObjectId);
-
-        return comment.isPresent();
+        return commentRepository.getCommentByCommentId(commentObjectId).isPresent();
     }
 
-    public List<CommentInformationDto> getAllCommentsByPostId(String username, String postId) {
+    @Async
+    public CompletableFuture<List<CommentInformationDto>> getAllCommentsByPostId(String username, String postId) {
         validateTokenExists(username);
 
-        return commentRepository.getAllCommentsByPostId(postId).stream()
+        List<CommentInformationDto> result = commentRepository.getAllCommentsByPostId(postId).stream()
                 .map(comment -> {
                     String actualUsername = userDataManagementClient.getUsernameByUserId(comment.getUserId());
 
@@ -51,13 +51,17 @@ public class CommentService {
                         comment.setUsername(actualUsername);
                         commentRepository.save(comment);
                     }
+
                     return EntityMapper.mapToCommentInformationDto(comment);
                 })
                 .sorted(Comparator.comparing(CommentInformationDto::likesCount).reversed())
                 .toList();
+
+        return CompletableFuture.completedFuture(result);
     }
 
-    public CommentInformationDto createNewComment(@Valid CommentCreationDto creationDto) {
+    @Async
+    public CompletableFuture<CommentInformationDto> createNewComment(CommentCreationDto creationDto) {
         Long userId = getUserIdByUsername(creationDto.username());
         validateTokenExists(creationDto.username());
 
@@ -72,10 +76,14 @@ public class CommentService {
 
         kafkaProducer.sendCommentCreatedEvent(creationDto.postId());
 
-        return EntityMapper.mapToCommentInformationDto(commentRepository.save(comment));
+        return CompletableFuture.completedFuture(
+                EntityMapper.mapToCommentInformationDto(commentRepository.save(comment))
+        );
     }
 
-    public CommentInformationDto updateCommentInformation(String postId, String commentId, CommentUpdateInformationDto updateDto) {
+    @Async
+    public CompletableFuture<CommentInformationDto> updateCommentInformation(
+            String postId, String commentId, CommentUpdateInformationDto updateDto) {
         validateTokenExists(updateDto.username());
 
         return commentRepository.getAllCommentsByPostId(postId).stream()
@@ -86,12 +94,13 @@ public class CommentService {
                         comment.setCommentText(updateDto.commentText());
                         commentRepository.save(comment);
                     }
-                    return EntityMapper.mapToCommentInformationDto(comment);
+                    return CompletableFuture.completedFuture(EntityMapper.mapToCommentInformationDto(comment));
                 })
                 .orElseThrow(() -> new NoSuchElementException("Comment not found"));
     }
 
-    public void deleteComment(String username, String postId, String commentId) {
+    @Async
+    public CompletableFuture<Void> deleteComment(String username, String postId, String commentId) {
         validateTokenExists(username);
         Long userId = getUserIdByUsername(username);
 
@@ -107,13 +116,13 @@ public class CommentService {
                         },
                         () -> { throw new NoSuchElementException("Comment not found"); }
                 );
-        kafkaProducer.sendCommentDeletedEvent(postId);
-    }
 
+        kafkaProducer.sendCommentDeletedEvent(postId);
+        return CompletableFuture.completedFuture(null);
+    }
 
     private void validateTokenExists(String username) {
         String token = authenticationServiceClient.findTokenByUsername(username);
-        log.info("Token found for user: {}", username);
         if (token == null || token.isEmpty()) {
             throw new TokenNotFoundException("Token not found for username: " + username);
         }
@@ -121,16 +130,10 @@ public class CommentService {
 
     private Long getUserIdByUsername(String username) {
         return userCache.computeIfAbsent(username, key -> {
-            log.info("Cache miss: requesting userId for username '{}'", key);
-
             Long id = userDataManagementClient.getUserIdByUsername(key);
-
             if (id == null) {
-                log.warn("User with username '{}' not found in userDataManagementClient", key);
                 throw new UserNotFoundException("User not found for username: " + key);
             }
-
-            log.info("Retrieved and cached userId '{}' for username '{}'", id, key);
             return id;
         });
     }

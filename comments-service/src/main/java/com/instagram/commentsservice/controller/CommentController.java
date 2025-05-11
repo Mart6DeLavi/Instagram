@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,38 +25,38 @@ public class CommentController {
     }
 
     @GetMapping("/all/{postId}")
-    public ResponseEntity<List<CommentInformationDto>> getAllCommentsByPostId(
+    public CompletableFuture<ResponseEntity<List<CommentInformationDto>>> getAllCommentsByPostId(
             @RequestHeader String username,
             @PathVariable String postId
     ) {
-        return ResponseEntity.status(HttpStatus.OK).body(commentService.getAllCommentsByPostId(username, postId));
+        return commentService.getAllCommentsByPostId(username, postId)
+                .thenApply(ResponseEntity::ok)
+                .exceptionally(ex -> ResponseEntity.internalServerError().body(List.of()));
     }
 
     @PostMapping("/create")
-    public ResponseEntity<CommentInformationDto> createNewComment(@RequestBody CommentCreationDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.createNewComment(dto));
+    public CompletableFuture<ResponseEntity<CommentInformationDto>> createNewComment(@RequestBody CommentCreationDto dto) {
+        return commentService.createNewComment(dto)
+                .thenApply(comment -> ResponseEntity.status(HttpStatus.CREATED).body(comment));
     }
 
-
     @PatchMapping("/update/{postId}/{commentId}")
-    public ResponseEntity<CommentInformationDto> updateCommentInformation(
+    public CompletableFuture<ResponseEntity<CommentInformationDto>> updateCommentInformation(
             @PathVariable String postId,
             @PathVariable String commentId,
             @RequestBody CommentUpdateInformationDto updateDto) {
-        return ResponseEntity.status(HttpStatus.OK).body(commentService.updateCommentInformation(postId, commentId, updateDto));
+        return commentService.updateCommentInformation(postId, commentId, updateDto)
+                .thenApply(ResponseEntity::ok);
     }
 
     @DeleteMapping("/delete/{postId}/{commentId}")
-    public String deleteComment(
+    public CompletableFuture<ResponseEntity<String>> deleteComment(
             @RequestHeader String username,
             @PathVariable String postId,
             @PathVariable String commentId
     ) {
-        try {
-            commentService.deleteComment(username, postId, commentId);
-            return String.format("Status: %s", HttpStatus.OK);
-        } catch (Exception ex) {
-            return ex.getMessage();
-        }
+        return commentService.deleteComment(username, postId, commentId)
+                .thenApply(v -> ResponseEntity.ok("✅ Deleted"))
+                .exceptionally(ex -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ " + ex.getMessage()));
     }
 }
