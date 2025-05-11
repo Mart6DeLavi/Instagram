@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "post-service", url = "http://localhost:8004")
+@FeignClient(name = "post-service", url = "http://post-service:8004")
 public interface PostServiceClient {
 
     @GetMapping("/api/v1/posts/allById/{userId}")

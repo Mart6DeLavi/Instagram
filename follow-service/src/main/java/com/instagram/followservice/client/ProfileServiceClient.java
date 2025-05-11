@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
-@FeignClient(name = "profile-service", url = "http://localhost:8002")
+@FeignClient(name = "profile-service", url = "http://profile-service:8002")
 public interface ProfileServiceClient {
 
     @PostMapping("/api/v1/profile/subscriptions-info")

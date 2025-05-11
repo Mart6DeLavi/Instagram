@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
-@FeignClient(name = "follow-service", url = "http://localhost:8007")
+@FeignClient(name = "follow-service", url = "http://follow-service:8007")
 public interface FollowServiceClient {
 
     @GetMapping("/api/v1/follow/following/{userId}")
