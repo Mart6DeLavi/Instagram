@@ -1,0 +1,32 @@
+server:
+  port: 8008
+  error:
+    include-stacktrace: never
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  application:
+    name: search-service
+
+  elasticsearch:
+    host: ${ELASTICSEARCH_HOST}
+    port: ${ELASTICSEARCH_PORT}
+    api-key: ${ELASTICSEARCH_API_KEY}
+
+  kafka:
+    bootstrap-servers: kafka:9092
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method

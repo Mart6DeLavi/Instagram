@@ -1,0 +1,42 @@
+server:
+  port: 8006
+  error:
+    include-stacktrace: never
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  application:
+    name: like-service
+
+  datasource:
+    url: jdbc:postgresql://postgres-like:5432/Instagram_Like_Service
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: like-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method

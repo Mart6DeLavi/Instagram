@@ -1,0 +1,30 @@
+server:
+  port: 8010
+
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  application:
+    name: chat-service
+
+  data:
+    mongodb:
+      uri: mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@instagram.ohyxk9x.mongodb.net/chat_service
+
+  kafka:
+    bootstrap-servers: kafka:9092
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method

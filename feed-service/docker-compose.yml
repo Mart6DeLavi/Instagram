@@ -5,6 +5,7 @@ services:
     working_dir: /app
     volumes:
       - ./build/libs/feed-service-0.0.1-SNAPSHOT.jar:/app/app.jar
+      - ./application-prod.yaml:/app/config/application-prod.yaml
     ports:
       - "8012:8012"
     environment:

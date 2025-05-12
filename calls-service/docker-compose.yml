@@ -4,6 +4,7 @@ services:
     working_dir: /app
     volumes:
       - ./build/libs:/app
+      - ./application-prod.yaml:/app/config/application-prod.yaml
     command: ["java", "-jar", "calls-service-0.0.1-SNAPSHOT.jar"]
     ports:
       - "8011:8011"

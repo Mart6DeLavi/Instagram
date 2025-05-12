@@ -1,0 +1,25 @@
+server:
+  port: 8012
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  application:
+    name: feed-service
+
+  kafka:
+    bootstrap-servers: kafka:9092
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method

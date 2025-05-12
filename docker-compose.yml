@@ -131,22 +131,25 @@ services:
     working_dir: /app
     volumes:
       - ./security-service/build/libs/security-service-0.0.1-SNAPSHOT.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+      - ./security-service/application-prod.yaml:/app/config/application-prod.yaml
+    command: [ "java","-jar","app.jar" ]
     ports:
       - "8001:8001"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
-      REDIS_USERNAME: ${REDIS_USERNAME}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_USERNAME=${REDIS_USERNAME}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
       - redis
       - postgres-auth
       - kafka
       - discovery-server
+
 
   user-data-management-service:
     image: eclipse-temurin:21-jre-alpine
@@ -174,19 +177,20 @@ services:
     working_dir: /app
     volumes:
       - ./profile-service/build/libs/profile-service-0.0.1-SNAPSHOT.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+      - ./profile-service/application-prod.yaml:/app/config/application-prod.yaml
+    command: [ "java","-jar","app.jar" ]
     ports:
       - "8002:8002"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_URL: jdbc:postgresql://postgres-user:5432/Instagram_User_Data_Management_Service
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: redispass
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redispass
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
     depends_on:
       - postgres-user
       - redis
@@ -199,15 +203,17 @@ services:
     working_dir: /app
     volumes:
       - ./post-service/build/libs/post-service-0.0.1-SNAPSHOT.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+      - ./post-service/application-prod.yaml:/app/config/application-prod.yaml
+    command: [ "java","-jar","app.jar" ]
     ports:
       - "8004:8004"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      MONGODB_USERNAME: ${MONGODB_USERNAME}
-      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
+      - MONGODB_USERNAME=${MONGODB_USERNAME}
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
     depends_on:
       - kafka
       - discovery-server
@@ -218,13 +224,15 @@ services:
     working_dir: /app
     volumes:
       - ./comments-service/build/libs/comments-service-0.0.1-SNAPSHOT.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+      - ./comments-service/application-prod.yaml:/app/config/application-prod.yaml
+    command: [ "java","-jar","app.jar" ]
     ports:
       - "8005:8005"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      MONGODB_USERNAME: ${MONGODB_USERNAME}
-      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
+      - MONGODB_USERNAME=${MONGODB_USERNAME}
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
     depends_on:
       - kafka
       - discovery-server
@@ -235,17 +243,20 @@ services:
     working_dir: /app
     volumes:
       - ./like-service/build/libs/like-service-0.0.1-SNAPSHOT.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+      - ./like-service/application-prod.yaml:/app/config/application-prod.yaml
+    command: [ "java","-jar","app.jar" ]
     ports:
       - "8006:8006"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - postgres-like
       - kafka
       - discovery-server
+
 
   follow-service:
     image: eclipse-temurin:21-jre-alpine
@@ -253,17 +264,18 @@ services:
     working_dir: /app
     volumes:
       - ./follow-service/build/libs/follow-service-0.0.1-SNAPSHOT.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+      - ./follow-service/application-prod.yaml:/app/config/application-prod.yaml
+    command: [ "java","-jar","app.jar" ]
     ports:
       - "8007:8007"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_URL: jdbc:postgresql://postgres-follow:5432/Instagram_Follow_Service
-      REDIS_HOST: ${LOCAL_REDIS_HOST}
-      REDIS_PORT: ${LOCAL_REDIS_PORT}
-      REDIS_PASSWORD: ${LOCAL_REDIS_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=redispass
     depends_on:
       - postgres-follow
       - redis
@@ -276,17 +288,20 @@ services:
     working_dir: /app
     volumes:
       - ./search-service/build/libs/search-service-0.0.1-SNAPSHOT.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+      - ./search-service/application-prod.yaml:/app/config/application-prod.yaml
+    command: [ "java","-jar","app.jar" ]
     ports:
       - "8008:8008"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      ELASTICSEARCH_HOST: ${ELASTICSEARCH_HOST}
-      ELASTICSEARCH_PORT: ${ELASTICSEARCH_PORT}
-      ELASTICSEARCH_API_KEY: ${ELASTICSEARCH_API_KEY}
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
+      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST}
+      - ELASTICSEARCH_PORT=${ELASTICSEARCH_PORT}
+      - ELASTICSEARCH_API_KEY=${ELASTICSEARCH_API_KEY}
     depends_on:
       - kafka
       - discovery-server
+
 
   payment-service:
     image: eclipse-temurin:21-jre-alpine
@@ -294,16 +309,18 @@ services:
     working_dir: /app
     volumes:
       - ./payment-service/build/libs/payment-service-0.0.1-SNAPSHOT.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+      - ./payment-service/application-prod.yaml:/app/config/application-prod.yaml
+    command: [ "java","-jar","app.jar" ]
     ports:
       - "8009:8009"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      STRIPE_API_SECRET_KEY: ${STRIPE_API_SECRET_KEY}
-      STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY}
-      STRIPE_WEBHOOK_KEY: ${STRIPE_WEBHOOK_KEY}
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - STRIPE_API_SECRET_KEY=${STRIPE_API_SECRET_KEY}
+      - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
+      - STRIPE_WEBHOOK_KEY=${STRIPE_WEBHOOK_KEY}
     depends_on:
       - postgres-payment
       - discovery-server
@@ -314,13 +331,15 @@ services:
     working_dir: /app
     volumes:
       - ./chat-service/build/libs/chat-service-0.0.1-SNAPSHOT.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+      - ./chat-service/application-prod.yaml:/app/config/application-prod.yaml
+    command: [ "java","-jar","app.jar" ]
     ports:
       - "8010:8010"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      MONGODB_USERNAME: ${MONGODB_USERNAME}
-      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
+      - MONGODB_USERNAME=${MONGODB_USERNAME}
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD}
     depends_on:
       - kafka
       - discovery-server
@@ -331,13 +350,15 @@ services:
     working_dir: /app
     volumes:
       - ./calls-service/build/libs/calls-service-0.0.1-SNAPSHOT.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+      - ./calls-service/application-prod.yaml:/app/config/application-prod.yaml
+    command: [ "java","-jar","app.jar" ]
     ports:
       - "8011:8011"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - postgres-calls
       - kafka
@@ -349,14 +370,17 @@ services:
     working_dir: /app
     volumes:
       - ./feed-service/build/libs/feed-service-0.0.1-SNAPSHOT.jar:/app/app.jar
-    command: ["java", "-jar", "app.jar"]
+      - ./feed-service/application-prod.yaml:/app/config/application-prod.yaml
+    command: [ "java","-jar","app.jar" ]
     ports:
       - "8012:8012"
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/app/config/
     depends_on:
       - kafka
       - discovery-server
+
   api-gateway:
     image: eclipse-temurin:21-jre-alpine
     container_name: api-gateway

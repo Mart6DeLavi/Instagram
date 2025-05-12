@@ -1,0 +1,40 @@
+server:
+  port: 8011
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  application:
+    name: calls-service
+
+  datasource:
+    url: jdbc:postgresql://postgres-calls:5432/Instagram_Calls_Service
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+  liquibase:
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: calls-service
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
