@@ -30,6 +30,8 @@ stripe:
   max-network-retries: 2
 
 eureka:
+  instance:
+    prefer-ip-address: true
   client:
     service-url:
       defaultZone: http://host.docker.internal:8761/eureka/

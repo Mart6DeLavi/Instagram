@@ -1,0 +1,13 @@
+services:
+  api-gateway:
+    image: eclipse-temurin:21-jre-alpine
+    container_name: api-gateway
+    working_dir: /app
+    volumes:
+      - ./build/libs/api-gateway-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
+    ports:
+      - "8013:8013"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://host.docker.internal:8761/eureka/

@@ -13,6 +13,7 @@ build
 /calls-service/.env
 /follow-service/.env
 /post-service/.env
+/comments-service/.env
 /payment-service/ .env
 /profile-service/.env
 /search-service/.env

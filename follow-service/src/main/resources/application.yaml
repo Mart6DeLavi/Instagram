@@ -33,6 +33,8 @@ spring:
       group-id: follow-service
 
 eureka:
+  instance:
+    prefer-ip-address: true
   client:
     service-url:
       defaultZone: http://host.docker.internal:8761/eureka/

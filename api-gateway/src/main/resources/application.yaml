@@ -8,13 +8,13 @@ spring:
   cloud:
     gateway:
       routes:
-
+        # --- Основные API ---
         - id: security-service
           uri: lb://security-service
           predicates:
             - Path=/api/v1/auth/**
 
-        - id: user-data-management-service
+        - id: user-data-management
           uri: lb://user-data-management-service
           predicates:
             - Path=/api/v1/user-management/**
@@ -71,101 +71,104 @@ spring:
           predicates:
             - Path=/api/v1/search/**
 
-
+        # --- Swagger / OpenAPI прокси для каждого микросервиса ---
         - id: security-service-docs
           uri: lb://security-service
           predicates:
-            - Path=/security-service/api-docs/**
+            - Path=/security-service/api-docs,/security-service/api-docs/**
           filters:
             - RewritePath=^/security-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
         - id: user-data-management-service-docs
           uri: lb://user-data-management-service
           predicates:
-            - Path=/user-data-management-service/api-docs/**
+            - Path=/user-data-management-service/api-docs,/user-data-management-service/api-docs/**
           filters:
             - RewritePath=^/user-data-management-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
         - id: profile-service-docs
           uri: lb://profile-service
           predicates:
-            - Path=/profile-service/api-docs/**
+            - Path=/profile-service/api-docs,/profile-service/api-docs/**
           filters:
             - RewritePath=^/profile-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
         - id: post-service-docs
           uri: lb://post-service
           predicates:
-            - Path=/post-service/api-docs/**
+            - Path=/post-service/api-docs,/post-service/api-docs/**
           filters:
             - RewritePath=^/post-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
         - id: calls-service-docs
           uri: lb://calls-service
           predicates:
-            - Path=/calls-service/api-docs/**
+            - Path=/calls-service/api-docs,/calls-service/api-docs/**
           filters:
             - RewritePath=^/calls-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
         - id: chat-service-docs
           uri: lb://chat-service
           predicates:
-            - Path=/chat-service/api-docs/**
+            - Path=/chat-service/api-docs,/chat-service/api-docs/**
           filters:
             - RewritePath=^/chat-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
         - id: comments-service-docs
           uri: lb://comments-service
           predicates:
-            - Path=/comments-service/api-docs/**
+            - Path=/comments-service/api-docs,/comments-service/api-docs/**
           filters:
             - RewritePath=^/comments-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
         - id: feed-service-docs
           uri: lb://feed-service
           predicates:
-            - Path=/feed-service/api-docs/**
+            - Path=/feed-service/api-docs,/feed-service/api-docs/**
           filters:
             - RewritePath=^/feed-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
         - id: follow-service-docs
           uri: lb://follow-service
           predicates:
-            - Path=/follow-service/api-docs/**
+            - Path=/follow-service/api-docs,/follow-service/api-docs/**
           filters:
             - RewritePath=^/follow-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
         - id: like-service-docs
           uri: lb://like-service
           predicates:
-            - Path=/like-service/api-docs/**
+            - Path=/like-service/api-docs,/like-service/api-docs/**
           filters:
             - RewritePath=^/like-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
         - id: payment-service-docs
           uri: lb://payment-service
           predicates:
-            - Path=/payment-service/api-docs/**
+            - Path=/payment-service/api-docs,/payment-service/api-docs/**
           filters:
             - RewritePath=^/payment-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
         - id: search-service-docs
           uri: lb://search-service
           predicates:
-            - Path=/search-service/api-docs/**
+            - Path=/search-service/api-docs,/search-service/api-docs/**
           filters:
             - RewritePath=^/search-service/api-docs(?<segment>/?.*),/v3/api-docs${segment}
 
 eureka:
+  instance:
+    prefer-ip-address: true
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://discovery-server:8761/eureka/
 
 springdoc:
   api-docs:
     path: /v3/api-docs
 
   swagger-ui:
+    disable-default-url: true
     path: /swagger-ui.html
     operations-sorter: method
     urls:

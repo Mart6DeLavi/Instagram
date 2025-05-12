@@ -1,7 +1,13 @@
 server:
   port: 8000
+  error:
+    include-stacktrace: never
+
 
 spring:
+  config:
+    activate:
+      on-profile: prod
   application:
     name: user-data-management-service
 
@@ -15,30 +21,30 @@ spring:
     hibernate:
       ddl-auto: validate
 
-  liquibase:
-    change-log: classpath:/db/changelog/db.changelog-master.yaml
-    clear-checksums: true
+    liquibase:
+      change-log: classpath:/db/changelog/db.changelog-master.yaml
+      clear-checksums: true
 
-  kafka:
-    bootstrap-servers: kafka:9092
-    consumer:
-      group-id: user-data-management-service
-
-  task:
-    execution:
-      pool:
-        core-size: 5
-        max-size: 10
-        queue-capacity: 100
-
-topics:
-  authentication-service:
-    user-management-service:
+    kafka:
+      bootstrap-servers: kafka:9092
       consumer:
-        registration: registration
-        authentication: authentication
-      producer:
-            authentication: authentication-answer
+        group-id: user-data-management-service
+
+    task:
+      execution:
+        pool:
+          core-size: 5
+          max-size: 10
+          queue-capacity: 100
+
+  topics:
+    authentication-service:
+      user-management-service:
+        consumer:
+          registration: registration
+          authentication: authentication
+        producer:
+          authentication: authentication-answer
 
 eureka:
   instance:

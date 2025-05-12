@@ -53,6 +53,8 @@ jwt:
   user_secret_lifetime: 10m
 
 eureka:
+  instance:
+    prefer-ip-address: true
   client:
     service-url:
       defaultZone: http://host.docker.internal:8761/eureka/
