@@ -1,3 +1,7 @@
+<p align="center">
+	<img src="https://github.com/Mart6DeLavi/Instagram/blob/master/icons8-instagram-144.png" alt="Libro Logo" width="200"/>
+</p>
+
 # 📷 Instagram Clone – Scalable Microservices Architecture
 
 > A feature-rich Instagram backend clone built with a focus on **microservices**, **asynchronous communication**, **scalability**, and **resilience**. This system includes essential functionalities like posts, comments, likes, profile management, and secure authentication using modern cloud-native technologies.
