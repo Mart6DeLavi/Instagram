@@ -101,7 +101,7 @@ The backend supports:
 ---
 
 # Architecture diagram
-![Instagram](https://github.com/user-attachments/assets/b3d7ea96-c29b-4732-9b98-48e348b3d6a1)
+![Instagram](https://github.com/user-attachments/assets/86b0e27f-63c2-4a04-b9e3-8e61f2814f7f)
 
 ## 📚 API Documentation
 
